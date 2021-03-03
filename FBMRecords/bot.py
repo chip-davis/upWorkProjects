@@ -1,75 +1,154 @@
 import tweepy
-import json
-import sys
-
+from tweepy.error import TweepError
+from queue import Queue
+from threading import Thread
 # api keys to authenticate with twitter API
+
 CONSUMER_KEY        = ""
 CONSUMER_SECRET     = ""
 ACCESS_TOKEN        = ""
-ACCESS_TOKEN_SECRET = ""
-
-#empty list to contain UIDS of users
-UIDS = []
+ACCESS_TOKEN_SECRET = " "
 
 #key words to search for in possible tweets
-KEYWORDS            = ["@nba_topshot", "moments", "moment", "my showcase", "my showcases", "Witness history", "pack",
-                       "packs", "top shot", "nba top shot", "topshot"]
+PLAYER_KEYWORDS            = ["@nba_topshot", "my showcase", "my showcases", "Witness history", "pack",
+                            "packs", "top shot", "nba top shot", "topshot", "#nbatopshot", "#topshot",
+                            "https://nbatopshot.com/", "@nbatopshot", "moment", "moments", "showcase", 
+                             "showcases", "my showcase"]
 
+TEAM_KEYWORDS              = ["@nba_topshot", "Witness history","packs", "top shot", "nba top shot", 
+                            "topshot", "#nbatopshot", "#topshot","https://nbatopshot.com/", "@nbatopshot"]
 
-#adds all of the userIDS of the users we are tracking to list
-with open (r"UIDS.txt", 'r') as f:
-    for line in f:
-        UIDS.append(line.strip())
-
-#converts UIDS to a set so the running time of a lookup is O(1) not 0(n)
-UIDS = set(UIDS)
-
-#tweepy class to create and listen to a stream
 class MyStreamListener(tweepy.StreamListener):
-    def __init__(self, api):
-        self.api = api
-        self.me = api.me()
 
-    def on_status(self, tweet):
-        #grabs who the tweet is from to determine if it actually came from one of the followed accounts
-        tweetFromUID           = (tweet.user.id_str)
-        #sets a default value for repliedToTweetContents so there is no error in the case
-        #that a tweet is not a reply
-        repliedToTweetContents = ""
-        
-        #checks that the tweet is origniating from one of the selected UIDs
-        if (tweetFromUID in UIDS):
-            #if the tweet is a reply and or retweet
-            if (tweet.in_reply_to_status_id_str is not None):
-                #get the ID of the parent tweet (the one the user is replying to)
-                repliedToTweet         = tweet.in_reply_to_status_id_str
-                #actually get the tweet status
-                repliedToTweetContents = api.get_status(repliedToTweet)
-                #gets the tweet text can now move on to the next check
-                repliedToTweetContents = repliedToTweetContents.text
+    def __init__(self, q=Queue()):
+        super(MyStreamListener, self).__init__()
+        super().__init__()
+        self.q = q
+        for i in range(4):
+            t = Thread(target=self.process)
+            t.daemon = True
+            t.start()
 
-            for word in KEYWORDS:
-                #checks to see if either the tweet or the tweet being replied to contains any of the keywords
-                if word.lower() in tweet.text.lower() or word.lower() in repliedToTweetContents.lower():
-                    tweetID = tweet.id
-                    try:
-                        #retweets the selected tweet
-                        print(f"Match {tweet.text}. Retweeting...")
-                        api.retweet(tweetID)
-                    except:
-                        print("There was an error.")
+    def on_status(self, data):
+        self.q.put(data)
+    
+    def process(self):
+        while True:
+            status = self.q.get()
+            
+            tweetText       = status.text
+            tweetFrom       = status.user.id_str
+            tweetID         = status.id
+            inReplyToTweet  = status.in_reply_to_status_id_str
+            
+            if (tweetFrom in teamUIDS):
 
-    def on_error(self, status):
-        print("Error detected")
+                if(inReplyToTweet != None):
+                    replyToTweetText = api.get_status(inReplyToTweet)
+                    replyToTweetText = replyToTweetText.text
 
-#creates new tweepy instance that is logged in with our api keys
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+                    for word in replyToTweetText.split():
+                        for keyword in TEAM_KEYWORDS:
+                            if word.lower() == keyword.lower():
+                                try:
+                                    print(f"Match: {replyToTweetText}. Retweeting...")
+                                    api.retweet(tweetID)
+                                except tweepy.TweepError as ex:
+                                    print(f"Tweepy error: {ex}")
+                                except:
+                                    print("Other error.")
 
-#creates our actualy tweepy api object
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-#sets up the stream with the selected UIDS
-tweets_listener = MyStreamListener(api)
-stream = tweepy.Stream(api.auth, tweets_listener)
-stream.filter(follow=UIDS, is_async=True)
+                for word in tweetText.split():
+                    for keyword in TEAM_KEYWORDS:
+                        if word.lower() == keyword.lower():
+                            try:
+                                print(f"Match: {tweetText}. Retweeting...")
+                                api.retweet(tweetID)
+                            except tweepy.TweepError as ex:
+                                print(f"Tweepy error: {ex}")
+                            except:
+                                print("Other error.")
+            if (tweetFrom in playerUIDS):
+
+                if(inReplyToTweet != None):
+                    replyToTweetText = api.get_status(inReplyToTweet)
+                    replyToTweetText = replyToTweetText.text
+                    for keyword in PLAYER_KEYWORDS:
+                        if(keyword.lower()) in replyToTweetText.lower():
+                            try:
+                                print(f"Match {replyToTweetText} from player {tweetFrom}. Retweeting...")
+                                api.retweet(tweetID)
+                            except tweepy.TweepError as ex:
+                                print(f"Tweepy error: {ex}")
+                            except:
+                                print("Other error")
+                for keyword in PLAYER_KEYWORDS:
+                    if keyword.lower() in tweetText.lower():
+                        try:
+                            print(f"Match {tweetText} from player {tweetFrom}. Retweeting...")
+                            api.retweet(tweetID)
+                        except tweepy.TweepError as ex:
+                            print(f"Tweepy error: {ex}")
+                        except:
+                            print("Other error")
+
+
+
+            self.q.task_done()
+
+
+
+    def on_error(self, status_code):
+        if status_code == 420:
+            return True
+        else:
+            return True
+
+
+def getUIDS():
+    global playerUIDS, teamUIDS, UIDS
+    playerUIDS = []
+    teamUIDS   = []
+    UIDS       = {}
+
+    #adds all of the userIDS of the users we are tracking to list
+    with open (r"playerUIDS.txt", 'r') as f:
+        for line in f:
+            playerUIDS.append(line.strip())
+    #converts UIDS to a set so the running time of a lookup is O(1) not 0(n)
+    playerUIDS = set(playerUIDS)
+
+    with open(r"teamsUIDS.txt", 'r') as f:
+        for line in f:
+            teamUIDS.append(line.strip())
+    
+    teamUIDS = set(teamUIDS)
+    UIDS = playerUIDS.union(teamUIDS)
+
+    
+
+def getAPI():
+    global api
+    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    #creates our actualy tweepy api object
+    api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+    
+    return(api)
+
+
+def main():
+    getUIDS()
+    api = getAPI()
+    print("Starting...")
+    
+    myStreamListener = MyStreamListener()
+    while True:
+        try:
+            myStream = tweepy.Stream(auth = api.auth, listener=myStreamListener)
+            myStream.filter(follow=UIDS, stall_warnings=True)
+        except:
+            print("uh oh")
+
+main()
