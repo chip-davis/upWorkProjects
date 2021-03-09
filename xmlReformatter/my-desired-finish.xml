@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+  <category>
+    <Type>Product Type</Type>
+    <GWLogo>logo.jpg</GWLogo>
+    <Description>Description</Description>
+    <sku>
+      <Color>Color 1</Color>
+      <Size>Size 1</Size>
+      <Length>Length 1</Length>
+      <Pack>Pack Number 1</Pack>
+      <Weight>Weight Number 1</Weight>
+      <Strength>Strength Number 1</Strength>
+      <Partnum>Part 001</Partnum>
+    </sku>
+    <sku>
+      <Color>Color 2</Color>
+      <Size>Size 2</Size>
+      <Length>Length 2</Length>
+      <Pack>Pack Number 2</Pack>
+      <Weight>Weight Number 2</Weight>
+      <Strength>Strength Number 2</Strength>
+      <Partnum>Part 002</Partnum>
+    </sku>
+    <sku>
+      <Color>Color 3</Color>
+      <Size>Size 3</Size>
+      <Length>Length 3</Length>
+      <Pack>Pack Number 3</Pack>
+      <Weight>Weight Number 3</Weight>
+      <Strength>Strength Number 3</Strength>
+      <Partnum>Part 003</Partnum>
+    </sku>
+    <!-- This <sku> content would need to repeat for however many available skus -->
+  </category>
+  <!-- This <category> content would need to repeat for however many product types -->
+</catalog>

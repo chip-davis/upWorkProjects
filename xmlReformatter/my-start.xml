@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+  <category>
+    <Type>Yellow Poly Pro - 3 Strand Twisted Rope</Type>
+    <GWLogo>logo.jpg</GWLogo>
+    <Color>Yellow</Color>
+    <Size>1/4&quot;</Size>
+    <Length>50ft. coil</Length>
+    <Pack>12</Pack>
+    <Weight>8#</Weight>
+    <Strength>1125</Strength>
+    <Partnum>YPP 100</Partnum>
+    <Description>Some Description</Description>
+  </category>
+  <category>
+    <Type></Type>
+    <GWLogo></GWLogo>
+    <Color>Green</Color>
+    <Size>1/4&quot;</Size>
+    <Length>100ft. coil</Length>
+    <Pack>12</Pack>
+    <Weight>16#</Weight>
+    <Strength>1125</Strength>
+    <Partnum>YPP 101</Partnum>
+    <Description></Description>
+  </category>
+  <category>
+    <Type>Type2</Type>
+    <GWLogo></GWLogo>
+    <Color>Blue</Color>
+    <Size>1/4&quot;</Size>
+    <Length>300ft. spool</Length>
+    <Pack>1</Pack>
+    <Weight>4#</Weight>
+    <Strength>1125</Strength>
+    <Partnum>YPP 102</Partnum>
+    <Description></Description>
+  </category>
+</catalog>
