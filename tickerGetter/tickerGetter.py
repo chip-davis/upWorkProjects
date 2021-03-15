@@ -26,21 +26,22 @@ class getTickers():
 
     @staticmethod
     def getWikiTicker(companynameUrl):
-        tickers = []
+        
         soup = getTickers.getSoup(f"https://en.wikipedia.org/{companynameUrl}")
-        table = soup.find('table', class_="infobox vcard")
+        
+        test=[x.extract() for x in soup.findAll('script')]
+        
         try:
-            for tr in table.find_all('tr'):
-                tds = tr.find_all("td")
-                for td in tds:
-                    for ul in td.find_all("ul"):
-                        for li in ul.find_all('li'):
-                            for ahref in li.find_all('a', {'href' : "external text"}):
-                                tickers.append(ahref.text)
-                                print(tickers)
+            ticker = (soup.find('a', {'rel':"nofollow", "class" : "external text"}).text).strip().replace('"', "")
+            print(f"ticker {ticker}")
+            if len(ticker) >=5:
+                pass
+            else:
+                return ticker
         except:
-            print(f"oops{companynameUrl}")
-        return tickers
+            print(f"{companynameUrl} oop")
+            pass
+        
 
     @staticmethod
     def getspGlobal100():
@@ -58,12 +59,18 @@ class getTickers():
         
         for company in companies:
             company=str(company)
-            result = re.search('"/wiki/\w*"', company)
             try:
-                ticker = getTickers.getWikiTicker(result.group().replace('"', ""))
-                tickers.append(ticker)
+                result = re.search('"/wiki/\w*.*"', company)
+                result = result.group()
+                result = re.sub(' title="\w*.*"', '', result)
+                
             except:
                 pass
+            if result:
+                ticker = getTickers.getWikiTicker(result.replace('"', ""))
+                if not ticker:
+                    print(f"something is wrong with {result}")
+                tickers.append(ticker)
             
         print(tickers)
         print(len(tickers))
