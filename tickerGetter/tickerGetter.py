@@ -25,17 +25,27 @@ class getTickers():
         if ticker: return ticker
 
     @staticmethod
+    def getWikiTicker(companynameUrl):
+        tickers = []
+        soup = getTickers.getSoup(f"https://en.wikipedia.org/{companynameUrl}")
+        table = soup.find('table', class_="infobox vcard")
+        try:
+            for tr in table.find_all('tr'):
+                tds = tr.find_all("td")
+                for td in tds:
+                    for ul in td.find_all("ul"):
+                        for li in ul.find_all('li'):
+                            for ahref in li.find_all('a', {'href' : "external text"}):
+                                tickers.append(ahref.text)
+                                print(tickers)
+        except:
+            print(f"oops{companynameUrl}")
+        return tickers
+
+    @staticmethod
     def getspGlobal100():
     
         soup = getTickers.getSoup("https://en.wikipedia.org/wiki/S%26P_Global_100")
-        manualReplacements = {"BHP Billiton" : "BHP", "Canon (company)" : "Canon", "Chevron (company)" : "Chevron", "The Coca-Cola Company" : "Coke", 
-                                "ExxonMobil" : "Exxon", "GDF Suez": "Engie", "Hewlett-Packard" : "Hewlett Packard", "L'Oréal":"LRLCY", "McDonald's" : "MCD",
-                                "Nissan Motors" : "Nissan", "Repsol YPF" : "REPYY", "Sanofi-Aventis" : "Sanofi", "Standard Chartered Bank" : "SCBFY",
-                                "21st Century Fox" : "Fox", "Vivendi Universal" : "VIVHY", "Deutsche Telekom AG" : "DTEGY", "Aegon NV" : "AEG",
-                                "Allianz" : "ALIZY", "Anglo American plc" : "NGLOY", "AXA" : "AXAHY", "Barclays" : "BSC", "Saint-Gobain": "CODYY",
-                                "Deutsche Telekom" : "DTEGY", "Ford Motor Company" : "F", "Volkswagen" : "VWAGY", "Swiss Re" : "SSREY",
-                                "Schneider Electric": "SBGSY",  "RWE" : "RWEOY", "Koninklijke Philips Electronics NV" : "PHG", "Orange SA":"ORAN",
-                                "Novartis" : "NVS", "Munich Re" : "MURGY", "LVMH" : "LVMUY"}
         companies = []
         tickers   = []
 
@@ -48,21 +58,15 @@ class getTickers():
         
         for company in companies:
             company=str(company)
-            titleIndex = (company.find("title="))
-        
-            if titleIndex != -1:
-                company     = (company[titleIndex:])
-                carrotIndex = company.find(">")
-                #turns company into only the company name
-                company     = (company[6:carrotIndex])
-                company     = company.replace('"', "").replace(".", "").replace("Group","")
-                #gets rid of quotes 
-                if manualReplacements.get(company): company = manualReplacements.get(company)
-
-                ticker      = getTickers.getTicker(company)
-                
-                if ticker: tickers.append(ticker)
-        return (tickers)
+            result = re.search('"/wiki/\w*"', company)
+            try:
+                ticker = getTickers.getWikiTicker(result.group().replace('"', ""))
+                tickers.append(ticker)
+            except:
+                pass
+            
+        print(tickers)
+        print(len(tickers))
 
     @staticmethod
     def getBBCGlobal30():
@@ -432,7 +436,4 @@ class getTickers():
         return(tickers)
 
 
-test = getTickers.getEuroNext100()
-print(test)
-test2 = getTickers.getEuroNext1002()
-print(test2)
+getTickers.getspGlobal100()
