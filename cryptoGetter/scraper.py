@@ -14,6 +14,15 @@ def getSoup(url):
     soup = BeautifulSoup(requests.get(url, headers=headers).content, 'html.parser')
     return soup
 
+def addToCryptoCounter(cryptoCounter, finalHoldings):
+    finalHoldings = list(set(finalHoldings))
+    for holding in finalHoldings:
+        if cryptoCounter.get(holding):
+            cryptoCounter[holding] += 1
+        else:
+            cryptoCounter[holding] = 1
+    return cryptoCounter, finalHoldings
+
 def boostVC():
     boostVCHoldings = {}
     cryptoCounter   = {}
@@ -84,19 +93,11 @@ def dcg(cryptoCounter):
     finalHoldings = set(finalHoldings)
     finalHoldings = list(finalHoldings)
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
 
     dcgHoldings['DCG Holdings'] = finalHoldings
     
     return dcgHoldings, cryptoCounter
-
-def addToCryptoCounter(finalHoldings, cryptoCounter):
-    for holding in finalHoldings:
-        if cryptoCounter.get(holding):
-            cryptoCounter[holding] += 1
-        else:
-            cryptoCounter[holding] = 1
-    return cryptoCounter
 
 def pantera(cryptoCounter):
     finalHoldings = []
@@ -109,7 +110,7 @@ def pantera(cryptoCounter):
             holding = "0x"
         finalHoldings.append(holding)
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     panteraHoldings['Pantera'] = finalHoldings
     
     return panteraHoldings, cryptoCounter
@@ -124,7 +125,7 @@ def arringtonxr(cryptoCounter):
         holding = strong.text.strip()
         finalHoldings.append(holding)
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)    
     arringtonxrHoldings['ArringtonXR'] = finalHoldings
     
     return arringtonxrHoldings, cryptoCounter
@@ -138,7 +139,7 @@ def coinbase(cryptoCounter):
         holding = holding.text.strip()
         finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     coinbaseHoldings['Coinbase'] = finalHoldings
     
     return coinbaseHoldings, cryptoCounter
@@ -156,7 +157,7 @@ def fenBushCapital(cryptoCounter):
                 holding = "51signing"
             finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     fenbushcapitalHoldings['Fenbushi'] = finalHoldings
     
     return fenbushcapitalHoldings, cryptoCounter
@@ -172,7 +173,7 @@ def hashedVC(cryptoCounter):
         holding = holding.text.strip()
         finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     hashedHoldings['Hashed VC'] = finalHoldings
     
     return hashedHoldings, cryptoCounter
@@ -192,7 +193,7 @@ def continueCapital(cryptoCounter):
         holding = holding.capitalize()
         finalHoldings.append(holding.strip())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     continueCapitalHoldings['Continue Capital'] = finalHoldings
 
     return continueCapitalHoldings, cryptoCounter
@@ -210,7 +211,7 @@ def cmeGroup(cryptoCounter):
         if not link.endswith(('.html', '.pdf', "/", "form", "cmegroup", "CMEGroup", "cme-group", "insights")) and not link.startswith("#") and link != 'None':
             finalHoldings.append((link.capitalize().replace(".", " ")))
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     cmeHoldings['CME Group'] = finalHoldings
     
     return cmeHoldings, cryptoCounter
@@ -241,7 +242,7 @@ def breyerCapital(cryptoCounter):
     #gets rid of duplicates
     finalHoldings = list(set(finalHoldings))
    
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     breyerCapitalHoldings['Breyer Capital'] = finalHoldings
    
     return breyerCapitalHoldings, cryptoCounter
@@ -263,7 +264,7 @@ def dcp(cryptoCounter):
             if link == "Alpha.tryshowtime": link = "Show Time"
             finalHoldings.append(link)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     dcpHoldings['Dragonfly Capital'] = finalHoldings
     
     return dcpHoldings, cryptoCounter
@@ -284,7 +285,7 @@ def blockchain(cryptoCounter):
         if not link.startswith(("blockchain", "app", "jobs", "#", "mailto", "subscribe", "141", "facebook", "twitter")) and link != "":
             finalHoldings.append((link.capitalize()))
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)  
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)  
     blockchainCapitalHoldings['Blockchain Capital'] = finalHoldings
     
     return blockchainCapitalHoldings, cryptoCounter
@@ -297,7 +298,7 @@ def placeholderVC(cryptoCounter):
     for href in hrefs:
         finalHoldings.append(str((href.get("id").capitalize())))
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     placeholderVCHoldings['Placeholder VC'] = finalHoldings
     
     return placeholderVCHoldings, cryptoCounter
@@ -321,7 +322,7 @@ def intializedVC(cryptoCounter):
                 link.replace(".", "")
             finalHoldings.append(link.capitalize())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     intializedVCHoldings['Initalized VC'] = finalHoldings
     
     return intializedVCHoldings, cryptoCounter
@@ -337,7 +338,7 @@ def lsvp(cryptoCounter):
         if not holding.startswith("menu") and holding != "None":
             finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     lsvpHoldings["Lightspeed Holdings"] = finalHoldings
     
     return lsvpHoldings, cryptoCounter
@@ -356,9 +357,12 @@ def dhvc(cryptoCounter):
             link = str(link)
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
             link = re.sub("(\.com*\/*)*(\.ai\/)*(\.io\/)*(\.org\/)*(\.foundation\/)*(\.me\/)*(\.app\/)*(\.finance\/)*(\.net\/)*(\.capital\/)*(\.network\/)*(\.tv\/)*(\.auto\/)*(\.it\/)*(\.io\/)*", "", link)
+            if link == "theta":
+                finalHoldings.append("Thetatoken")
+                continue
             finalHoldings.append((link.capitalize()))
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     DHVCholdings['DHVC'] = finalHoldings
     
     return DHVCholdings, cryptoCounter
@@ -367,6 +371,7 @@ def craftVentures(cryptoCounter):
     ### I used webbot here because the website had no way of identifying which company was crypto.
     ### there was only a drop down menu to select the crypto class which used JS to change what was displayed.
     ### while it is slower, the program is going to be slow anyway due to the magnitude of the scrapes.
+    print("scraping www.craftventures.com")
     finalHoldings = []
     craftVenturesHoldings = {}
     web = Browser(showWindow=False)
@@ -377,7 +382,7 @@ def craftVentures(cryptoCounter):
     for name in names:
         finalHoldings.append(str(name.text).strip())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     craftVenturesHoldings['Craft Ventures'] = finalHoldings
 
     return craftVenturesHoldings, cryptoCounter
@@ -391,7 +396,7 @@ def drwvc(cryptoCounter):
     for holding in holdings:
         finalHoldings.append(holding.text)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     drwvcHoldings['DRWVC'] = finalHoldings
     
     return drwvcHoldings, cryptoCounter
@@ -417,7 +422,7 @@ def compound(cryptoCounter):
         except Exception as ec:
             pass
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     compoundVCholdings['Compound VC'] = finalHoldings
     
     return compoundVCholdings, cryptoCounter
@@ -436,7 +441,7 @@ def fundersClub(cryptoCounter):
         except:
             pass
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     fundersClubHoldings['Funders Club'] = finalHoldings
     
     return fundersClubHoldings, cryptoCounter
@@ -457,7 +462,7 @@ def futurePerfect(cryptoCounter):
                     finalHoldings.append(holding.strip())
             except:
                 pass
-        cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+        cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
         futurePerfectVenturesHoldings['Future Perfect'] = finalHoldings
     except Exception as ex:
         print("There was an error with future perfect.")
@@ -472,7 +477,7 @@ def rre(cryptoCounter):
     holdings = soup.find_all('div', class_="portfolio-hoverlabel")
     for holding in holdings:
         finalHoldings.append(str(holding.text).strip())
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     rreHoldings['RRE Holdings'] = finalHoldings
     
     return rreHoldings, cryptoCounter
@@ -497,7 +502,7 @@ def kryptonite(cryptoCounter):
             finalHoldings.append(holding.capitalize())
     finalHoldings = list(set(finalHoldings))
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     kryptoniteHoldings['Kryptonite1 Holdings'] = finalHoldings
     
     return kryptoniteHoldings, cryptoCounter
@@ -515,7 +520,7 @@ def blockVC(cryptoCounter):
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
         link = re.sub("(\.com\/*\#*\/*)*(.io\/*)*(\.network\/)*(\.org\/*)*(\.im\/en\/index.html)*(\.net)*(\.co\/)*(\.cc\/*)*(\.global\/)*(\.plus\/*)*(\.foundation\/)*(\.info\/)*", "", link)
         finalHoldings.append(link.capitalize())
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     blockVCHoldings["Block VC"] = finalHoldings
     
     return blockVCHoldings, cryptoCounter
@@ -532,7 +537,7 @@ def btc(cryptoCounter):
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
         link = re.sub('(\/conference)*(\.com\/*)*(\.management\/)*', "", link)
         finalHoldings.append(link.capitalize())
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     btcHoldings['B.TC Holdings'] = finalHoldings
     
     return btcHoldings, cryptoCounter
@@ -552,7 +557,7 @@ def gbic(cryptoCounter):
                 finalHoldings.append(link.capitalize())
         except:
             pass
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     gbicHoldings['GBIC Holdings'] = finalHoldings
 
     return gbicHoldings, cryptoCounter
@@ -573,7 +578,7 @@ def svkCrypto(cryptoCounter):
                 finalHoldings.append(link.capitalize())
         except:
             pass
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     svkCryptoHoldings['SVK Crypto'] = finalHoldings
     
     return svkCryptoHoldings, cryptoCounter
@@ -594,7 +599,7 @@ def multiCoin(cryptoCounter):
         except:
             pass
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     multiCoinCapitalHoldings['MultiCoin Capital'] = finalHoldings
     
     return multiCoinCapitalHoldings, cryptoCounter
@@ -610,7 +615,7 @@ def inBlockChain(cryptoCounter):
         if holding not in banned:
             finalHoldings.append(holding)
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     inblockchainHoldings['Inblockchain Holdings'] = finalHoldings
     
     return inblockchainHoldings, cryptoCounter
@@ -627,7 +632,7 @@ def threshold(cryptoCounter):
         holding = re.sub("(\(NASDAQ: LVGO\))*(\(NASDAQ: SFT\))*(\(Foundation Medical\))*(\(Sisense\))*", "", holding)
         finalHoldings.append(holding.strip())
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     thresholdVCHoldings['Threshold VC'] = finalHoldings
     
     return thresholdVCHoldings, cryptoCounter
@@ -645,7 +650,7 @@ def bixin(cryptoCounter):
         link = re.sub("(\.com\/*)*(\.org\/*)*", "", link)
         finalHoldings.append(link.capitalize())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     bixinVCHoldings['Bixin VC'] = finalHoldings
     
     return bixinVCHoldings, cryptoCounter
@@ -660,7 +665,7 @@ def winklevoss(cryptoCounter):
     for holding in headings:
         finalHoldings.append(str(holding.text))
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     winklevossHoldings['Winklevoss'] = finalHoldings
     
     return winklevossHoldings, cryptoCounter
@@ -676,7 +681,7 @@ def signum(cryptoCounter):
         holding = holding.get("alt")
         finalHoldings.append(str(holding))
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     signumHoldings['Signum Holdings'] = finalHoldings
 
     return signumHoldings, cryptoCounter
@@ -691,7 +696,7 @@ def sora(cryptoCounter):
     for span in spans:
         finalHoldings.append(str(span.text))
 
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     soraHoldings['Sora Holdings'] = finalHoldings
     
     return soraHoldings, cryptoCounter
@@ -713,13 +718,14 @@ def mainVC(cryptoCounter):
         holding = re.sub("(>)*(<\/a>)*", "", holding)
         finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     mainVCHoldings['Slow VC'] = finalHoldings
     
     return mainVCHoldings, cryptoCounter
 
 def idcap(cryptoCounter):
     ### Again, had to use webbot because the website just wasnt working with BS ###
+    print("scraping ldcap.com")
     finalHoldings = []
     idCapHoldings = {}
     replacements = {"BTC":"Bitcoin", "ETH":"Ethereum", "OMG":"OMG Network", "BTM" :"Bytom", "LRC" : "Loopring", "GXS" : "GXChain"}
@@ -733,7 +739,7 @@ def idcap(cryptoCounter):
             continue
         finalHoldings.append(holding)
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     idCapHoldings['ID Cap'] = finalHoldings
     
     return idCapHoldings, cryptoCounter
@@ -752,7 +758,7 @@ def versionOne(cryptoCounter):
         link = re.sub("(\.com*\/*\#*\/*e*n*\/*)*(\.support\/*)*(\.io\/*)*(\.org\/*)*(\.dev\/*)*(network\.)*", "", link)
         finalHoldings.append(link.capitalize())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     versionOneHoldings['Version One VC'] = finalHoldings
     
     return versionOneHoldings, cryptoCounter
@@ -770,12 +776,13 @@ def yeoman(cryptoCounter):
         link = re.sub("(\.org\/*)*(\.network\/*)*(\.com\/*e*n*\/*)*(\.mw\/*)*(\.one\/*)*", "", link)
         finalHoldings.append(link.capitalize())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     yeomanHoldings['Yeoman'] = finalHoldings
     
     return yeomanHoldings, cryptoCounter
 
 def lemniscap(cryptoCounter):
+    print("scraping www.lemniscap.com")
     finalHoldings = []
     lemniscapHoldings = {}
     banned = ["website ➞", "DISCLAIMER", "PRIVACY", "ABOUT", "PORTFOLIO", "JOBS", "CONTACT"]
@@ -799,11 +806,386 @@ def lemniscap(cryptoCounter):
             continue
         finalHoldings.append(description.strip())
     
-    cryptoCounter = addToCryptoCounter(finalHoldings, cryptoCounter)
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     lemniscapHoldings['Lemnis Cap'] = finalHoldings
     
     return lemniscapHoldings, cryptoCounter
 
+def gumi(cryptoCounter):
+    finalHoldings = []
+    gumiCryptosHoldings = {}
+
+    soup = getSoup("https://www.gumi-cryptos.com/")
+    div  = soup.find('div', class_="filtr-container")
+    hrefs = div.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.org\/*)*(\.com*\/*e*n*\/*h*o*m*e*)*(\.io\/*)*(\.jp\/*)*(\.xyz\/*)*(\.network\/*)*(\.finance\/*\#*\/*)*(\.exchange\/*)*", "", link)
+        finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    gumiCryptosHoldings["Gumi Crypto"] = finalHoldings
+    
+    return gumiCryptosHoldings, cryptoCounter
+
+def hardYaka(cryptoCounter):
+    finalHoldings = []
+    hardYakaHoldings = {}
+
+    soup = getSoup("https://hardyaka.com/investments/")
+    div  = soup.find("div", class_="content-container")
+    hrefs = div.find_all("a")
+    for href in hrefs:
+        link = (href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.net\/*)*(\.com*\/*e*n*\/*w*e*l*c*o*m*e*a*b*o*u*t*\-*u*s*\.*h*t*m*l*\#*i*n*d*e*x*\/*)*(corporate\.)*(\.it\/*)*(\.app\/*)*(\.io\/*)*(\.org\/*)*(\.money\/*)*(\.is\/*)*(\.social\/*)*(\.engineering\/*)*(\.financial\/*)*(\.br\/*)*(\.tech\/*)*(\.us\/*)*(\.mx\/*)*", "", link)
+        link = re.sub("(\/)*(corp\.)*", "", link)
+        finalHoldings.append(link.capitalize())
+        
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    hardYakaHoldings['Hard Yaka Holdings'] = finalHoldings
+
+    return hardYakaHoldings, cryptoCounter
+
+def milestone(cryptoCounter):
+    finalHoldings = []
+    milestoneHoldings = {}
+
+    soup = getSoup("http://milestonevc.com/project/qukuai/")
+    holdings = soup.find_all("p")
+    for holding in holdings:
+        holding = (holding.text.strip())
+        if holding:
+            finalHoldings.append(holding)
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    milestoneHoldings["Milestone Holdings"] = finalHoldings
+    
+    return milestoneHoldings, cryptoCounter
+
+def socialCapital(cryptoCounter):
+    finalHoldings = []
+    socialCapitalHoldings = {}
+
+    soup = getSoup("https://www.socialcapital.com/portfolio")
+    divs = soup.find_all("div")
+    for div in divs:
+        if div.get("class") == ["Portfolio-name-0-2-82"]:
+            holding = div.text.strip()
+            finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    socialCapitalHoldings['Social Capital'] = finalHoldings
+    
+    return socialCapitalHoldings, cryptoCounter
+
+def abstractVC(cryptoCounter):
+    finalHoldings = []
+    abstractVCHoldings = {}
+
+    soup = getSoup("https://www.abstractvc.com/companies")
+    div = soup.find('div', class_="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-center")
+    images = div.find_all("img")
+    for image in images:
+        holding = str((image.get("alt")))
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    abstractVCHoldings['Abstract VC'] = finalHoldings
+
+    return abstractVCHoldings, cryptoCounter
+
+def signalVC(cryptoCounter):
+    ### WEBSITE REQUIRED JS USING WEBBOT ###
+    print("scraping https://signal.vc")
+    finalHoldings    = []
+    signalVCHoldings = {}
+    
+    web = Browser(showWindow=False)
+    web.go_to("https://signal.vc/")
+    hrefs = web.find_elements(tag="a")
+    
+    for href in hrefs:
+        link = str((href.get_attribute("href")))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.com\/*)*(\.network\/*)*(\.finance\/*)*(\.io\/*e*n*\/*)*(\.org\/*)*", "", link)
+        link = re.sub("\.", " ", link)
+        link = link.replace("/", "")
+        if link == "fetch ai":
+            link = "Fetch.AI"
+            finalHoldings.append(link)
+            continue
+        if not link.startswith("mailto"):
+            finalHoldings.append(link.capitalize())
+
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    signalVCHoldings['Signal VC'] = finalHoldings
+    
+    return signalVCHoldings, cryptoCounter
+
+def notation(cryptoCounter):
+    finalHoldings = []
+    notationVCHoldings = {}
+    soup = getSoup("https://notation.vc/companies/")
+    
+    #I use regex to get a partial class name match.
+    #All of the class names in the HTML that corresponded to crypto were slightly different.
+    #But, they all had blockchain in there somewhere so this grabs all of them and ignores the
+    #other companies.
+
+    divs = soup.find_all("div", attrs={'class' : re.compile(".*blockchain.*")})
+    
+    for div in divs:
+        holding = div.find("span", class_="company-name")
+        holding = (holding.text)
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    notationVCHoldings['Notation VC'] = finalHoldings
+    
+    return notationVCHoldings, cryptoCounter
+
+def metaVerse(cryptoCounter):
+    finalHoldings = []
+    metaVerseVenturesHoldings = {}
+    
+    soup = getSoup("https://metaverseventures.co/?ref=block123#investments")
+    holdings = soup.find_all("h3")
+    for holding in holdings:
+        finalHoldings.append(str(holding.text))
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    metaVerseVenturesHoldings['MetaVerse Ventures'] = finalHoldings
+
+    return metaVerseVenturesHoldings, cryptoCounter
+
+def nirvanaCapital(cryptoCounter):
+    finalHoldings = []
+    nirvanaCapitalHoldings = {}
+
+    soup = getSoup("http://nirvana.capital/")
+    holdings = soup.find_all("figcaption", class_="wp-caption-text")
+
+    for holding in holdings:
+        holding = (str(holding.text).strip())
+        if holding == "Zen Protocol":
+            holding = "Zenprotocol"
+            finalHoldings.append(holding)
+            continue
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    nirvanaCapitalHoldings['Nirvana Capital'] = finalHoldings
+
+    return nirvanaCapitalHoldings, cryptoCounter
+
+def binanceLabs(cryptoCounter):
+    finalHoldings = []
+    binanceLabsHoldings = {}
+
+    soup = getSoup("https://labs.binance.com/")
+    headings = soup.find_all("h4")
+    for heading in headings:
+        href = heading.find("a")
+        finalHoldings.append(str(href.text).strip())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    binanceLabsHoldings['Binance Labs'] = finalHoldings
+       
+    return binanceLabsHoldings, cryptoCounter
+
+def castleIsland(cryptoCounter):
+    finalHoldings = []
+    castleIslandHoldings = {}
+
+    soup = getSoup("https://www.castleisland.vc/portfolio")
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str((href.get("href")))
+        
+        if not link.startswith(("index", "/", "mailto", "https://onthebrink")):
+            
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.com\/*)*(\.casa\/*)*(\.io\/*.*)*(\.id\/*)*", "", link)
+            holding = link.strip().capitalize()
+            finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    castleIslandHoldings['Castle Island'] = finalHoldings
+    
+    return castleIslandHoldings, cryptoCounter
+
+def consensys(cryptoCounter):
+    finalHoldings = []
+    consensysLabsHoldings = {}
+
+    soup = getSoup("https://mesh.xyz/portfolio/")
+    headings = soup.find_all("h5")
+    for heading in headings:
+        holding = str(heading.text).strip()
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    consensysLabsHoldings['Consensys Labs'] = finalHoldings
+    
+    return consensysLabsHoldings, cryptoCounter
+
+def ecf(cryptoCounter):
+    finalHoldings = []
+    ecfHoldings   = {}
+
+    soup = getSoup("https://ecf.network/")
+    headings = soup.find_all("h5")
+    for heading in headings:
+        finalHoldings.append(str(heading.text).capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    ecfHoldings['Etherem Community Fund'] = finalHoldings
+   
+    return ecfHoldings, cryptoCounter
+
+def a16z(cryptoCounter):
+    finalHoldings = []
+    a16zHoldings  = {}
+
+    soup = getSoup("https://a16z.com/portfolio/#crypto")
+    divs = soup.find_all('div', attrs={"class":re.compile(".*crypto.*")})
+
+    for div in divs:
+        try:
+            href = div.find('a')
+            link = str(href.get("href"))
+            if not link.startswith(("https://a16z", "https://twitter", "https://info.a16z","https://https://portfoliojobs", "/", "#")):
+                link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+                link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*", "", link)
+                holding = link.capitalize().strip()
+                finalHoldings.append(holding)
+        except:
+            pass
+  
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    a16zHoldings['A16z'] = finalHoldings
+    
+    return a16zHoldings, cryptoCounter
+
+def fabricVC(cryptoCounter):
+    finalHoldings = []
+    fabricVCHoldings = {}
+
+    soup = getSoup("https://www.fabric.vc/")
+    #div = soup.find("div", class_="sqs-block-content")
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        if not link.startswith(("/", "https://www.fabric", "https://medium", "#", "https://twitter", "https://www.linkedin", "https://youtu.be", "https://player.fm",
+                                "https://techcrunch", "https://www.eventbrite", "https://blog", "https://tbtc", "https://www.youtube", "https://open.spotify",
+                                "https://www.ft", "https://cbhack", "https://human", "https://innovator", "http://cogx", "mailto", "https://www.facebook",
+                                "https://www.coindesk", "https://centrifuge", "https://blockchainconvergence", "https://www.thimble", "https://www.devcon",
+                                "https://www.dld", "https://www.etherealsummit", "https://dappcon", "https://instant", "https://podcasts",
+                                "https://blockchainventuresummit", "http://www.thimble", "https://devcon", "https://fabricvc", "http://eepurl")) and link != "None":
+            
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
+            holding = link.capitalize().strip()
+            finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    fabricVCHoldings['Fabric VC'] = finalHoldings
+    
+    return fabricVCHoldings, cryptoCounter
+
+def eightDCapital(cryptoCounter):
+    finalHoldings = []
+    eightDCapitalHoldings = {}
+
+    soup = getSoup("http://www.8dcapital.com/portfolio.html")
+    table = soup.find("tbody")
+    for tr in table.find_all("tr"):
+        td = tr.find("td")
+        holding = td.text
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    eightDCapitalHoldings['8D Capital'] = finalHoldings
+
+    return eightDCapitalHoldings, cryptoCounter
+
+def blockchainff(cryptoCounter):
+    finalHoldings = []
+    blockchainffHoldings = {}
+
+    links = []
+
+    soup = getSoup("https://blockchainff.com/")
+    div = soup.find("div", class_="elementor-container elementor-column-gap-default")
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        if not link.startswith(("blockchainff", "investment", "linkedin", "twitter", "#", "pbs", "t.co", "facebook", "//pinterest")):
+            links.append(link)
+    links = list(set(links))
+    for link in links:
+        link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
+        link = re.sub("(\.vc)*(app)*(\.nyc)*(home)*(\.ie)*(\.wine)*(\.biz)*(\.in)*(\.my)*(\.cc)*(\.r\w)*(\.one)*(\.ca)*(sosvportfolio)*", "", link)
+        finalHoldings.append(link.capitalize())
+        
+
+    cryptoCouter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    blockchainffHoldings['Blockchainff Holdings'] = finalHoldings
+
+    return blockchainffHoldings, cryptoCounter
+
+def fundamentalLabs(cryptoCounter):
+    ###SITE REQUIRED JS ###
+    ###Some of the ones that are grabbed where the ALT tag is only 3 letters, do not look good but
+    ###its the best I can do as the images are not links.
+    print("scraping https://www.fundamentallabs.com")
+    finalHoldings = []
+    fundamentalHoldings  = {}
+    banned = ("Logo", "home image", "banner-1")
+
+    web = Browser(showWindow=False)
+    web.go_to("https://www.fundamentallabs.com/#/")
+    web.click(xpath='//*[@id="portfolio"]/div[2]')
+    images = web.find_elements(tag="img")
+    for img in images:
+        img = str(img.get_attribute("alt"))
+        if img not in banned:
+            holding = re.sub("(\.)*(\d*)*(\W)*", "", img)
+            if holding == "":
+                continue
+            finalHoldings.append(holding.strip().capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    fundamentalHoldings['Fundamental Labs'] = finalHoldings
+    
+    return fundamentalHoldings, cryptoCounter
+
+def chainfund(cryptoCounter):
+    finalHoldings = []
+    chainfundHoldings = {}
+
+    web   = Browser(showWindow=False)
+    web.go_to("http://chainfund.capital/")
+    hrefs = web.find_elements(tag="a")
+    for href in hrefs:
+        link = str(href.get_attribute("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        if not link.startswith(("chainfund", "medium", "youtu", "forbes", "advfn", "businessinsider", "finance.yahoo")):
+            link = re.sub("(\.com\/*i*n*d*e*x*\/*)*(\.io\/*)*", "", link)
+            if link != "None":
+                finalHoldings.append(link.capitalize())
+
+    finalHoldings.append("Good Money")
+    finalHoldings.append("Abra")
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    chainfundHoldings['Chain Fund'] = finalHoldings
+
+    return chainfundHoldings, cryptoCounter
 
 
 def main():
@@ -924,6 +1306,63 @@ def main():
     lemniscapHoldings, cryptoCounter = lemniscap(cryptoCounter)
     allHoldings.append(lemniscapHoldings)
 
+    gumiCryptosHoldings, cryptoCounter = gumi(cryptoCounter)
+    allHoldings.append(gumiCryptosHoldings)
+
+    hardYakaHoldings, cryptoCounter = hardYaka(cryptoCounter)
+    allHoldings.append(hardYakaHoldings)
+
+    milestoneHoldings, cryptoCounter = milestone(cryptoCounter)
+    allHoldings.append(cryptoCounter)
+    
+
+    socialCapitalHoldings, cryptoCounter = socialCapital(cryptoCounter)
+    allHoldings.append(socialCapitalHoldings)
+
+    abstractVCHoldings, cryptoCounter = abstractVC(cryptoCounter)
+    allHoldings.append(abstractVCHoldings)
+
+    signalVCHoldings, cryptoCounter = signalVC(cryptoCounter)
+    allHoldings.append(signalVCHoldings)
+
+    notationVCHoldings, cryptoCounter = notation(cryptoCounter)
+    allHoldings.append(notationVCHoldings)
+
+    metaverseventuresHoldings, cryptoCounter = metaVerse(cryptoCounter)
+    allHoldings.append(metaverseventuresHoldings)
+
+    nirvanaCapitalHoldings, cryptoCounter = nirvanaCapital(cryptoCounter)
+    allHoldings.append(nirvanaCapitalHoldings)
+
+    binanceLabsHoldings, cryptoCounter = binanceLabs(cryptoCounter)
+    allHoldings.append(binanceLabsHoldings)
+
+    castleIslandHoldings, cryptoCounter = castleIsland(cryptoCounter)
+    allHoldings.append(castleIslandHoldings)
+
+    consensysLabsHoldings, cryptoCounter = consensys(cryptoCounter)
+    allHoldings.append(consensysLabsHoldings)
+
+    ecfHoldings, cryptoCounter = ecf(cryptoCounter)
+    allHoldings.append(ecfHoldings)
+
+    a16zHoldings, cryptoCounter = a16z(cryptoCounter)
+    allHoldings.append(a16zHoldings)
+
+    fabricVCHoldings, cryptoCounter = fabricVC(cryptoCounter)
+    allHoldings.append(fabricVCHoldings)
+
+    eightDCapitalHoldings, cryptoCounter = eightDCapital(cryptoCounter)
+    allHoldings.append(eightDCapitalHoldings)
+
+    blockchainffHoldings, cryptoCounter = blockchainff(cryptoCounter)
+    allHoldings.append(blockchainffHoldings)
+
+    chainfundHoldings, cryptoCounter = chainfund(cryptoCounter)
+    allHoldings.append(chainfundHoldings)
+    
+    fundamentalHoldings, cryptoCounter = fundamentalLabs(cryptoCounter)
+    allHoldings.append(fundamentalHoldings)
 
     idCapHoldings, cryptoCounter = idcap(cryptoCounter)
     allHoldings.append(idCapHoldings)
@@ -931,14 +1370,10 @@ def main():
     craftVenturesHoldings, cryptoCounter = craftVentures(cryptoCounter)
     allHoldings.append(craftVenturesHoldings)
 
-    print(cryptoCounter)
-
     keys = []
     for i,j in enumerate (allHoldings):
         keys.append((j.keys()))
-        
-        
-    
+            
     convertToExcel(cryptoCounter, allHoldings, keys)
 
 def convertToExcel(cryptoCounter, allHoldings, keys):
@@ -971,5 +1406,6 @@ def convertToExcel(cryptoCounter, allHoldings, keys):
         aCount += 1
         bCount += 1
     wb.close()
+    print("DONE!")
     
 main()
