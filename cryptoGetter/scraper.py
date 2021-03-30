@@ -7,11 +7,12 @@ import xlsxwriter
 import openpyxl
 from webbot import Browser
 import time
+import os
 
-def getSoup(url):
+def getSoup(url, verify=True):
     print(f"Scraping {url}")
     headers =  {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"}
-    soup = BeautifulSoup(requests.get(url, headers=headers).content, 'html.parser')
+    soup = BeautifulSoup(requests.get(url, headers=headers, verify=verify).content, 'html.parser')
     return soup
 
 def addToCryptoCounter(cryptoCounter, finalHoldings):
@@ -1187,6 +1188,561 @@ def chainfund(cryptoCounter):
 
     return chainfundHoldings, cryptoCounter
 
+def unionCapital(cryptoCounter):
+    finalHoldings = []
+    unionCapitalHoldings = {}
+
+    soup      = getSoup("https://www.usv.com/companies/")
+    companies = soup.find_all("div", class_="m__list-row__title")
+    for company in companies:
+        holding = str(company.text.strip())
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    unionCapitalHoldings['Union Capital'] = finalHoldings
+
+    return unionCapitalHoldings, cryptoCounter
+
+def sequoiaCap(cryptoCounter):
+    finalHoldings = []
+    sequoiaCapHoldings = {}
+
+    soup = getSoup("https://www.sequoiacap.com/companies/")
+    companies = soup.find_all('div', class_="_name")
+    for company in companies:
+        holding = str(company.text.strip())
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    sequoiaCapHoldings['Sequoia Capital'] = finalHoldings
+    
+    return sequoiaCapHoldings, cryptoCounter
+
+def gv(cryptoCounter):
+    finalHoldings = []
+    gvHoldings    = {}
+
+    soup = getSoup("https://www.gv.com/portfolio/")
+    holdings = soup.find_all("a", attrs={"data-name" : True})
+    for holding in holdings:
+        holding = str(holding.get("data-name")).strip()
+        finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    gvHoldings['GV Holdings'] = finalHoldings
+    
+    return gvHoldings, cryptoCounter
+
+def collaborativeFund(cryptoCounter):
+    finalHoldings =  []
+    collaborativeFundHoldings = {}
+    banned = ['eepurlcgCbcz', 'feeds.feedburnercollabfund', 'twittercollabfund']
+    soup = getSoup("https://www.collaborativefund.com/investments/")
+    main = soup.find_all("main")
+    hrefs = soup.find_all('a')
+    for href in hrefs:
+        link = str(href.get("href"))
+        if not link.startswith("/"):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
+            if link not in banned and link != "None":
+                finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    collaborativeFundHoldings['Collaborative Fund'] = finalHoldings
+
+    return collaborativeFundHoldings, cryptoCounter
+
+def freesvc(cryptoCounter):
+    print("Scraping freesvc.com")
+
+    finalHoldings = []
+    freesvcHoldings = {}
+    banned = ["freesvc", "itunes.applecnappfrees-clubid1106515579?mt=8", "a.app.qqosimple.jsp?pkgname=com.freesvc.club", "beian.miit.gov.cn", "beian.miit.gov"]
+
+    web = Browser(showWindow=False)
+    web.go_to("https://www.freesvc.com/company")
+    hrefs = web.find_elements(tag="a")
+    
+    for href in hrefs:
+        link = str(href.get_attribute("href"))
+        if not link.startswith(("mailto")):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*(\/*\.*index\.html)*(\/*hshcweb\/beijing\.html)*(\/*Index.aspx)*(\/*download_app\/)*(\/*home/index)*(\.cn\/*)*(\.*zh\/*)*(\/zh-hans\/*)*(\/*shanghai)*(#)*", "", link)
+            if link not in banned:
+                finalHoldings.append(link.capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    freesvcHoldings['Free SVC'] = finalHoldings
+
+    return freesvcHoldings, cryptoCounter
+
+def generalCatalyst(cryptoCounter):
+    finalHoldings = []
+    generalCatalystHoldings = {}
+    banned = ['generalcatalyst.comgcamplified', 'generalcatalyst.comgcamplified', 'generalcatalyst.comterms-of-use', 'generalcatalyst.comprivacy-policy', 'generalcatalyst.comdisclaimer']
+
+    soup = getSoup("https://www.generalcatalyst.com/")
+    hrefs = soup.find_all('a')
+    for href in hrefs:
+        link = (href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        
+        if not link.startswith(("/", "#", "mailto", "jobs", "twitter", "facebook", "linkedin")):
+            link = re.sub("generalcatalyst\.com\/portfolio\/", "", link)
+            link = link.replace("/", "")
+            if link not  in banned:
+                finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    generalCatalystHoldings['General Catalyst'] = finalHoldings
+
+    return generalCatalystHoldings, cryptoCounter
+
+def preAngel(cryptoCounter):
+    finalHoldings = []
+    preAngelHoldings = {}
+    soup = getSoup("http://pre-angel.com/portfolios/")
+    holdings = soup.find_all('h4')
+    for holding in holdings:
+        holding = str(holding.text.strip())
+        holding = re.sub("\(.*\)", "", holding)
+        for char in holding:
+            #makes sure that only fully english words are getting added
+            #this does create duplicates but finalHoldings gets converted to a set
+            #and back to a list in addToCryptoCounter so its not that big of a deal
+            #as the list isnt that long anyway
+
+            if ord(char.lower()) not in range(97, 123):
+                continue
+            finalHoldings.append(holding)
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    preAngelHoldings['Pre Angel'] = finalHoldings
+
+    return preAngelHoldings, cryptoCounter
+
+def collider(cryptoCounter):
+    finalHoldings = []
+    colliderHoldings = {}
+
+    soup = getSoup("https://www.collider.vc/")
+    divs = soup.find_all('div', class_="_2TxBB _3TiYw")
+    for div in divs:
+        href = div.find('a')
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        if not link.startswith("collider"):
+            link = re.sub("(\.io\/*)*(\.mw\/*)*(\.com\/*)*(\.fi\/*)*", "", link)
+            link = link.replace("-", " ")
+            finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    colliderHoldings['Collider'] = finalHoldings
+
+    return colliderHoldings, cryptoCounter
+
+def colliderLabs(crytpoCounter):
+    finalHoldings = []
+    colliderLabsHoldings = {}
+
+    soup = getSoup("https://www.collider.vc/collider-labs")
+    main = soup.find("section", attrs={"id":"comp-kgdz7dnb"})
+    spans = main.find_all("span", attrs={"style" : "color:#000000"})
+    
+    for span in spans:
+        description = str(span.text)
+        description = re.sub("(develops.*)*(is.*)*", "", description)
+        if description != "\u200b":
+            finalHoldings.append(description.strip())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(crytpoCounter, finalHoldings)
+    colliderLabsHoldings['Collider Labs'] = finalHoldings
+
+    return colliderLabsHoldings, cryptoCounter
+
+def framework(cryptoCounter):
+    finalHoldings = []
+    frameworkHoldings = {}
+
+    soup = getSoup("https://framework.ventures/")
+    holdings = soup.find_all("div", attrs={"class":"Home__PortfolioImageLabel-sc-1aigozo-13 fPKzYY"})
+    
+    for holding in holdings:
+        finalHoldings.append(str(holding.text).strip())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    frameworkHoldings['Framework'] = finalHoldings
+
+    return frameworkHoldings, cryptoCounter
+
+def maven(cryptoCounter):
+    finalHoldings = []
+    mavenHoldings = {}
+    banned = ['Maven 11', "Contact", "Legal", "Subscribe to our publications"]
+    soup = getSoup("https://www.maven11.com/portfolio")
+    holdings = soup.find_all('h4')
+    for holding in holdings:
+        holding = holding.text
+        if holding not in banned:
+            finalHoldings.append(holding)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    mavenHoldings['Maven11'] = finalHoldings
+
+    return mavenHoldings, cryptoCounter
+
+def digistrats(cryptoCounter):
+    finalHoldings = []
+    digistratsHoldings = {}
+
+    soup = getSoup("https://digistrats.com/")
+    images = soup.find_all("img")
+    for img in images:
+        holding = str(img.get("alt"))
+        if holding != "None":
+            finalHoldings.append(holding)
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    digistratsHoldings['Digistrat'] = finalHoldings
+
+    return digistratsHoldings, cryptoCounter
+
+def sparkdigital(cryptoCounter):
+    finalHoldings = []
+    sparkdigitalHoldings = {}
+
+    soup = getSoup("http://www.sparkdigitalcapital.com/#portfolio_sec", False)
+    section = soup.find('section', attrs={"id" : 'portfolio_sec'})
+    hrefs = section.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*", "", link)
+        finalHoldings.append(link.capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    sparkdigitalHoldings['Spark Digital'] = finalHoldings
+
+    return sparkdigitalHoldings, cryptoCounter
+
+def rarestone(cryptoCounter):
+    finalHoldings = []
+    rarestoneHoldings = {}
+
+    soup = getSoup('https://rarestone.capital/capital/')
+    hrefs = soup.find_all('a', attrs={"class":"logo col-4 lg-col-3 px2 sm-px4 sm-px5 sm-my2 my1 lg-my3"})
+
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*", "", link)
+        finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    rarestoneHoldings['Rarestone'] = finalHoldings
+
+    return rarestoneHoldings, cryptoCounter
+
+def bitscale(cryptoCounter):
+    finalHoldings = []
+    bitscaleHoldings = {}
+
+    soup = getSoup("https://bitscale.capital/#projects")
+    section = soup.find('section', id="projects")
+    hrefs = section.find_all('a')
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*", "", link)
+        finalHoldings.append(link.capitalize())
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    bitscaleHoldings['Bitscale'] = finalHoldings
+
+    return bitscaleHoldings, cryptoCounter 
+
+def divVC(cryptoCounter):
+    finalHoldings = []
+    divVCHoldings = {}
+
+    soup = getSoup("https://www.div.vc/")
+    div  = soup.find("div", class_="portfolio-big-container")
+    hrefs = div.find_all("a")
+    for href in hrefs:
+        finalHoldings.append(href.text)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    divVCHoldings['DIV VC'] = finalHoldings
+
+    return divVCHoldings, cryptoCounter
+    
+def mondayCapital(cryptoCounter):
+    finalHoldings = []
+    mondayCapitalHoldings = {}
+
+    soup = getSoup('https://www.monday.capital/our-startups')
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        if not link.startswith(("/")):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*", "", link)
+            finalHoldings.append(link.capitalize())
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    mondayCapitalHoldings['Monday Capital'] = finalHoldings
+ 
+    return mondayCapitalHoldings, cryptoCounter
+
+def ideocolab(cryptoCounter):
+    finalHoldings = []
+    ideocolabHoldings = {}
+
+    soup = getSoup('https://www.ideocolab.com/ventures/')
+    hrefs = soup.find_all("a", class_="ventures__portfolio-item")
+    for href in hrefs:
+        link = str(href.get("href"))
+        
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.us\/*)*", "", link)
+        link = re.sub("(medium@)*(PBC)*", "", link)
+        finalHoldings.append(link.capitalize())
+
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    ideocolabHoldings['Ideoco Labs'] = finalHoldings
+
+    return ideocolabHoldings, cryptoCounter
+
+def mihVC(cryptoCounter):
+    finalHoldings = []
+    mihHoldings   = {}
+    
+    soup = getSoup("https://www.mih.vc/portfolio/")
+    portfolio = soup.find("div", id="portfolio")
+    holdings = portfolio.find_all('p')
+    for holding in holdings:
+        finalHoldings.append(holding.text)
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    mihHoldings['MIH VC'] = finalHoldings
+    
+    return mihHoldings, cryptoCounter
+
+def elevenEleven(cryptoCounter):
+    finalHoldings = []
+    elevenElevenHoldings = {}
+    banned = ['Partnering With The Best Entrepreneurial Minds', 'Portfolio', 'ABOUT THE STARTUPS WE INVEST IN', 'We invest in early stage technology startups run by the best entrepreneurial minds in the world.',
+              'Why startups partner with us?', 'Our Investment Size and Stages Of Investment', 'Apply To Be One Of Our Startups', 'If you meet the above criteria, we would love to partner with you and work along with you to help you grow to the next level.',
+              'OUR PORTFOLIO', 'We are proud of our entrepreneurs who are building great companies!', 'BLOCKCHAIN COMPANIES IN OUR PORTFOLIO', 'ADVANCED TECHNOLOGY STARTUPS IN OUR PORTFOLIO']
+
+
+    soup = getSoup("http://11-11ventures.com/portfolio/")
+    divs = soup.find_all('div', class_="dslc-text-module-content")
+    for div in divs:
+        desc = div.find("p")
+        if desc:
+            desc = str(desc.text)
+            desc = re.sub("(is.*)*(was*)*(provides.*)*(founded.*)*", "", desc)
+            if desc not in banned:
+                finalHoldings.append(desc)
+   
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    elevenElevenHoldings['11-11 Venutres'] = finalHoldings
+    
+    return elevenElevenHoldings, cryptoCounter
+
+def coinfund(cryptoCounter):
+    finalHoldings = []
+    coinfundHoldings = {}
+
+    soup = getSoup("https://www.coinfund.io/portfolio")
+    divs = soup.find_all("div", class_="intrinsic")
+    for div in divs:
+        href = div.find("a")
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("(\.community\/*)*(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*", "", link)
+        finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    coinfundHoldings['Coin Fund'] = finalHoldings
+
+    return coinfundHoldings, cryptoCounter
+
+def unicorn(cryptoCounter):
+    finalHoldings = []
+    unicornHoldings = {}
+
+    soup = getSoup("https://www.unicorn.vc/portfolio")
+    hrefs = soup.find_all("a", class_="w-inline-block")
+    for href in hrefs:
+        link = str(href.get('href'))
+        if not link.startswith("/"):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*", "", link)
+            link = re.sub("http;//", "", link)
+            finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    unicornHoldings['Unicorn VC'] = finalHoldings
+
+    return unicornHoldings, cryptoCounter
+
+def longhash(cryptoCounter):
+    finalHoldings = []
+    longHashHoldings = {}
+    banned = ['None','longhash.com/','mailchi.mp/longhash/sign-up-for-longhash-ventures-newsletter', 'twitter.com/longhashhatch', 'eventbrite.com/o/longhash-singapore-17480892639', "linkedin.com/company/longhashventures",
+              'longhashventures.com/filecoin', 'forms.gle/kqGeAQ14t3LVnFKe9', 'access-sg.org/']
+    
+    soup = getSoup("https://www.longhashventures.com/")
+    hrefs = soup.find_all("a")
+    
+    for href in hrefs:
+        link = str(href.get("href"))
+        
+        if not link.startswith("/"):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            
+            if link not in banned:
+                link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+                finalHoldings.append(link.capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    longHashHoldings['Long Hash'] = finalHoldings
+
+    return longHashHoldings, cryptoCounter
+
+def consensus(cryptoCounter):
+    finalHoldings = []
+    consensusHoldings = {}
+
+    soup = getSoup("https://www.consensus-capital.com/#portfolio")
+    holdings = soup.find_all("div", class_='text-block')
+    
+    for holding in holdings:
+        finalHoldings.append(holding.text)
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    consensusHoldings['Consensus Capital'] = finalHoldings
+
+    return consensusHoldings, cryptoCounter
+
+def trgc(cryptoCounter):
+    finalHoldings = []
+    trgcHoldings  = {}
+    banned        = ['TRGC', ""]
+
+    soup = getSoup("https://trgc.io/")
+    images = soup.find_all("img")
+    
+    for img in images:
+        link = str(img.get("alt"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        if link not in banned:
+            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+            finalHoldings.append(link.capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    trgcHoldings['TRGC'] = finalHoldings
+
+    return trgcHoldings, cryptoCounter
+
+def brilliance(cryptoCounter):
+    finalHoldings      = []
+    brillianceHoldings = {}
+    banned             = ['../svg/map.svg', '../svg/logo.svg', '../svg/hamburger.svg']
+
+    soup = getSoup("https://brillianceventures.com/portfolio/portfolio.html")
+    images = soup.find_all("img")
+    for img in images:
+        holding = str(img.get("src"))
+        holding = re.sub("(img\/)*(-s)*(\.png)*(-m-01)*", "", holding)
+        if holding not in banned:
+            finalHoldings.append(holding.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    brillianceHoldings['Brilliance Venutres'] = finalHoldings
+
+    return brillianceHoldings, cryptoCounter
+
+def blockGround(cryptoCounter):
+    finalHoldings = []
+    blockGroundHoldings = {}
+
+    soup = getSoup('https://blockgroundcapital.com/portfolio/')
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str(href.get('href'))
+        if not link.startswith("https://blockgroundcapital.com/"):
+            link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+            finalHoldings.append(link.capitalize())
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    blockGroundHoldings['Block Ground'] = finalHoldings
+
+    return blockGroundHoldings, cryptoCounter
+
+def moonchain(cryptoCounter):
+    finalHoldings = []
+    moonchainHoldings = {}
+
+    soup = getSoup("https://moonchain.capital/")
+    holdings = soup.find_all("div", class_="title")
+    
+    finalHoldings = [holding.text.strip() for holding in holdings]
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    moonchainHoldings['Moonchain'] = finalHoldings
+
+    return moonchainHoldings, cryptoCounter
+
+def woodstock(cryptoCounter):
+    finalHoldings = []
+    woodstockHoldings = {}
+
+    soup = getSoup("https://woodstockfund.com/#portfolio")
+    hrefs = soup.find_all('a', class_='portlink')
+    
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("\..*", "", link)
+        finalHoldings.append(link.capitalize())
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    woodstockHoldings['Woodstock Fund'] = finalHoldings
+
+    return woodstockHoldings, cryptoCounter
+
+def blockwall(cryptoCounter):
+    finalHoldings = []
+    blockwallHoldings = {}
+
+    soup = getSoup("https://www.blockwall.capital/")
+    holdings = soup.find_all('span', style="color:rgb(229, 243, 251)")
+    
+    for holding in holdings:
+        finalHoldings.append(holding.text)
+    finalHoldings.append("Dusk Network")
+    
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    blockwallHoldings['Blockwall'] = finalHoldings
+
+    return blockwallHoldings, cryptoCounter
+
+def bitfury(cryptoCounter):
+    finalHoldings = []
+    bitFuryHoldings = {}
+
+    soup = getSoup("https://bitfury.com/bitfury-capital")
+    holdings = soup.find_all("h2")
+    finalHoldings = [holding.text.strip() for holding in holdings[1:]]
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    bitFuryHoldings['Bit Fury'] = finalHoldings
+
+    return bitFuryHoldings, cryptoCounter
 
 def main():
     allHoldings = []
@@ -1254,7 +1810,6 @@ def main():
     futurePerfectVenturesHoldings, cryptoCounter = futurePerfect(cryptoCounter)
     allHoldings.append(futurePerfectVenturesHoldings)
     
-
     rreHoldings, cryptoCounter = rre(cryptoCounter)
     allHoldings.append(rreHoldings)
 
@@ -1267,8 +1822,8 @@ def main():
     btcHoldings, cryptoCounter = btc(cryptoCounter)
     allHoldings.append(btcHoldings)
 
-    gbicHoldings, cryptoCounter = gbic(cryptoCounter)
-    allHoldings.append(gbicHoldings)
+    # gbicHoldings, cryptoCounter = gbic(cryptoCounter)
+    # allHoldings.append(gbicHoldings)
 
     svkCryptoHoldings, cryptoCounter = svkCrypto(cryptoCounter)
     allHoldings.append(svkCryptoHoldings)
@@ -1313,7 +1868,7 @@ def main():
     allHoldings.append(hardYakaHoldings)
 
     milestoneHoldings, cryptoCounter = milestone(cryptoCounter)
-    allHoldings.append(cryptoCounter)
+    allHoldings.append(milestoneHoldings)
     
 
     socialCapitalHoldings, cryptoCounter = socialCapital(cryptoCounter)
@@ -1361,6 +1916,7 @@ def main():
     chainfundHoldings, cryptoCounter = chainfund(cryptoCounter)
     allHoldings.append(chainfundHoldings)
     
+
     fundamentalHoldings, cryptoCounter = fundamentalLabs(cryptoCounter)
     allHoldings.append(fundamentalHoldings)
 
@@ -1370,13 +1926,110 @@ def main():
     craftVenturesHoldings, cryptoCounter = craftVentures(cryptoCounter)
     allHoldings.append(craftVenturesHoldings)
 
+    unionHoldings, cryptoCounter = unionCapital(cryptoCounter)
+    allHoldings.append(unionHoldings)
+
+    sequoiaCapHoldings, cryptoCounter = sequoiaCap(cryptoCounter)
+    allHoldings.append(sequoiaCapHoldings)
+
+    gvHoldings, cryptoCounter = gv(cryptoCounter)
+    allHoldings.append(gvHoldings)
+
+    collaborativeFundHoldings, cryptoCounter = collaborativeFund(cryptoCounter)
+    allHoldings.append(collaborativeFundHoldings)
+
+    freesvcHoldings, cryptoCounter = freesvc(cryptoCounter)
+    allHoldings.append(freesvcHoldings)
+
+    generalCatalystHoldings, cryptoCounter = generalCatalyst(cryptoCounter)
+    allHoldings.append(generalCatalystHoldings)
+
+    preAngelHoldings, cryptoCounter = preAngel(cryptoCounter)
+    allHoldings.append(preAngelHoldings)
+    
+    colliderHoldings, cryptoCounter = collider(cryptoCounter)
+    allHoldings.append(colliderHoldings)
+
+    colliderLabsHoldings, cryptoCounter = colliderLabs(cryptoCounter)
+    allHoldings.append(colliderLabsHoldings)
+
+    frameworkHoldings, cryptoCounter = framework(cryptoCounter)
+    allHoldings.append(frameworkHoldings)
+
+    mavenHoldings, cryptoCounter = maven(cryptoCounter)
+    allHoldings.append(mavenHoldings)
+
+    digistratsHoldings, cryptoCounter = digistrats(cryptoCounter)
+    allHoldings.append(digistratsHoldings)
+
+    sparkdigitalHoldings, cryptoCounter = sparkdigital(cryptoCounter)
+    allHoldings.append(sparkdigitalHoldings)
+
+    rarestoneHoldings, cryptoCounter = rarestone(cryptoCounter)
+    allHoldings.append(rarestoneHoldings)
+
+    bitscaleHoldings, cryptoCounter = bitscale(cryptoCounter)
+    allHoldings.append(bitscaleHoldings)
+
+    divVCHoldings, cryptoCounter = divVC(cryptoCounter)
+    allHoldings.append(divVCHoldings)
+
+    mondayCapitalHoldings, cryptoCounter = mondayCapital(cryptoCounter)
+    allHoldings.append(mondayCapitalHoldings)
+
+    ideocolabHoldings, cryptoCounter = ideocolab(cryptoCounter)
+    allHoldings.append(ideocolabHoldings)
+
+    mihVCHoldings, cryptoCounter = mihVC(cryptoCounter)
+    allHoldings.append(mihVCHoldings)
+
+    elevenElevenHoldings, cryptoCounter = elevenEleven(cryptoCounter)
+    allHoldings.append(elevenElevenHoldings)
+
+    coinfundHoldings, cryptoCounter = coinfund(cryptoCounter)
+    allHoldings.append(coinfundHoldings)
+
+    unicornHoldings, cryptoCounter = unicorn(cryptoCounter)
+    allHoldings.append(unicornHoldings)
+
+    longHashHoldings, cryptoCounter = longhash(cryptoCounter)
+    allHoldings.append(longHashHoldings)
+
+    consensusHoldings, cryptoCounter = consensus(cryptoCounter)
+    allHoldings.append(consensusHoldings)
+
+    trgcHoldings, cryptoCounter = trgc(cryptoCounter)
+    allHoldings.append(trgcHoldings)
+
+    brillianceHoldings, cryptoCounter = brilliance(cryptoCounter)
+    allHoldings.append(brillianceHoldings)
+
+    blockGroundHoldings, cryptoCounter = blockGround(cryptoCounter)
+    allHoldings.append(blockGroundHoldings)
+
+    moonchainHoldings, cryptoCounter = moonchain(cryptoCounter)
+    allHoldings.append(moonchainHoldings)
+
+    woodstockHoldings, cryptoCounter = woodstock(cryptoCounter)
+    allHoldings.append(woodstockHoldings)
+
+    blockwallHoldings, cryptoCounter = blockwall(cryptoCounter)
+    allHoldings.append(blockwallHoldings)
+
+    bitfuryHoldings, cryptoCounter = bitfury(cryptoCounter)
+    allHoldings.append(bitfuryHoldings)
+
+    os.chdir(r"C:\Users\Chip\Documents\upWorkProjects\justinScraping")
+    with open ('dump.txt', 'w') as f:
+        f.write(json.dumps(allHoldings))
+
     keys = []
     for i,j in enumerate (allHoldings):
         keys.append((j.keys()))
-            
     convertToExcel(cryptoCounter, allHoldings, keys)
 
 def convertToExcel(cryptoCounter, allHoldings, keys):
+    print("Converting to excel!")
     wb = xlsxwriter.Workbook('cryptos.xlsx')
     ws = wb.add_worksheet("Outlined Rows")
     ws.set_column('A:A', 20)
