@@ -8,6 +8,7 @@ import openpyxl
 from webbot import Browser
 import time
 import os
+from fuzzywuzzy import fuzz
 
 def getSoup(url, verify=True):
     print(f"Scraping {url}")
@@ -17,12 +18,20 @@ def getSoup(url, verify=True):
 
 def addToCryptoCounter(cryptoCounter, finalHoldings):
     finalHoldings = list(set(finalHoldings))
+
+    for index, holding in enumerate(finalHoldings):
+        for crypto, value in cryptoCounter.items():
+            ratio = fuzz.ratio(holding.lower(), crypto.lower())
+            if ratio >= 90:
+                finalHoldings[index] = crypto
+
     for holding in finalHoldings:
         if cryptoCounter.get(holding):
             cryptoCounter[holding] += 1
         else:
             cryptoCounter[holding] = 1
     return cryptoCounter, finalHoldings
+
 
 def boostVC():
     boostVCHoldings = {}
@@ -1743,6 +1752,20 @@ def bitfury(cryptoCounter):
     bitFuryHoldings['Bit Fury'] = finalHoldings
 
     return bitFuryHoldings, cryptoCounter
+
+def iconic(cryptoCounter):
+    finalHoldings = []
+    iconicHoldings = {}
+
+
+    url = "https://www.iconic.io/"
+    soup = getSoup(url)
+
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    iconicHoldings['IconicHoldings'] = finalHoldings
+
+    return iconicHoldings, cryptoCounter
+
 
 def main():
     allHoldings = []
