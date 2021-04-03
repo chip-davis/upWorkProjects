@@ -11,4 +11,4 @@ XMLReformatter was a job for a client that had a base XML file with a couple tho
 
 tickerGetter gets stock tickers mainly from wikipedia
 
-crytpoGetter gets a every cryptocurrency that a VC is invested in as well as a running total for how many times that crypto was invested in by all the VCs that we are checking.
+crytpoGetter gets every cryptocurrency that a VC is invested in as well as a running total for how many times that crypto was invested in by all the VCs that we are checking.
