@@ -19,11 +19,15 @@ def getSoup(url, verify=True):
 def addToCryptoCounter(cryptoCounter, finalHoldings):
     finalHoldings = list(set(finalHoldings))
 
+    #if there is a ratio of sameness greater than 90, the value in final holdings gets overwritten with the value
+    #in the current cryptoCounter
     for index, holding in enumerate(finalHoldings):
-        for crypto, value in cryptoCounter.items():
+        for crypto in cryptoCounter:
             ratio = fuzz.ratio(holding.lower(), crypto.lower())
-            if ratio >= 90:
+            partialRatio = fuzz.ratio(holding.lower(), crypto.lower())
+            if ratio >= 90 or partialRatio >= 90:
                 finalHoldings[index] = crypto
+
 
     for holding in finalHoldings:
         if cryptoCounter.get(holding):
@@ -267,7 +271,7 @@ def dcp(cryptoCounter):
         link = str(link)
         link = re.sub('https*://w*w*w*\.*', '', link)
         link = re.sub('\.com*/*', '', link)
-        link = re.sub('(.org)*(.io)*(.finance)*(.network)*(.app)*(.exchange)*(.tech)*', '', link)
+        link = re.sub('\..*', '', link)
         
         if not link.endswith(("/", "team", "portfolio", "research", "jobs", "home", "/portfo")):
             link = (link.capitalize())
@@ -290,8 +294,7 @@ def blockchain(cryptoCounter):
         link = str(link)
         
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub('\.com*/*', '', link)
-        link = re.sub('(.org)*(.io)*(.finance)*(.network)*(.app)*(.exchange)*(.tech)*(\/)*(.gg)*(\/en)*(\-US)*(#)*(about)*(\/es)*', '', link)
+        link = re.sub('\..*', '', link)
         if not link.startswith(("blockchain", "app", "jobs", "#", "mailto", "subscribe", "141", "facebook", "twitter")) and link != "":
             finalHoldings.append((link.capitalize()))
     
@@ -324,7 +327,7 @@ def intializedVC(cryptoCounter):
         link = str(link)
         
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.com*\/*)*(\.ai\/)*(\.io\/)*(\.org\/)*(\.so\/)*(\.me\/)*(\.app\/)*(\.gg\/)*(\.net\/)*(\.capital\/)*(\.work\/)*(\.nyc\/)*(\.auto\/)*(\.it\/)*(\.io\/)*", "", link)
+        link = re.sub('\..*', '', link)
         if not link.startswith(("/", "blog", "jobs", "merch", "java", "/who", "/how", "twitter", "instagram")) and link != "":
             if link.endswith((".nyc", ".app", ".fyi/")):
                 index = len(link)
@@ -366,7 +369,7 @@ def dhvc(cryptoCounter):
             link = (href.get("href"))
             link = str(link)
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com*\/*)*(\.ai\/)*(\.io\/)*(\.org\/)*(\.foundation\/)*(\.me\/)*(\.app\/)*(\.finance\/)*(\.net\/)*(\.capital\/)*(\.network\/)*(\.tv\/)*(\.auto\/)*(\.it\/)*(\.io\/)*", "", link)
+            link = link = re.sub('\..*', '', link)
             if link == "theta":
                 finalHoldings.append("Thetatoken")
                 continue
@@ -426,7 +429,7 @@ def compound(cryptoCounter):
                     link = (href.get("href"))
                     link = str(link)
                     link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-                    link = re.sub("(\.com*\/*)*(\.ai\/)*(\.io\/)*(\.org\/)*(\.casa\/)*(\.me\/)*(\.finance\/)*(\.gg\/)*(\.net\/)*(\.capital\/)*(\.work\/)*(\.nyc\/)*(\.auto\/)*(\.com/blockchain.html)*(\.io\/)*", "", link)
+                    link = re.sub('\..*', '', link)
                     link = re.sub("blockchain.html", '', link)
                     finalHoldings.append((link.capitalize()))
         except Exception as ec:
@@ -528,7 +531,7 @@ def blockVC(cryptoCounter):
         link = (href.get("href"))
         link = str(link)
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.com\/*\#*\/*)*(.io\/*)*(\.network\/)*(\.org\/*)*(\.im\/en\/index.html)*(\.net)*(\.co\/)*(\.cc\/*)*(\.global\/)*(\.plus\/*)*(\.foundation\/)*(\.info\/)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     blockVCHoldings["Block VC"] = finalHoldings
@@ -545,7 +548,7 @@ def btc(cryptoCounter):
     for href in hrefs:
         link = str((href.get("href")))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub('(\/conference)*(\.com\/*)*(\.management\/)*', "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     btcHoldings['B.TC Holdings'] = finalHoldings
@@ -562,7 +565,7 @@ def gbic(cryptoCounter):
         try:
             link = href.get("href")
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com*\/*)*(\.ai\/)*(\.io\/)*(\.org\/)*(\.network\/)*(\.cloud\/)*(\.finance\/)*(\.eco\/)*(\.net\/)*(\.capital\/)*(\.work\/)*(\.foundation\/\?lang\=en)*(\.auto\/)*(\.com/blockchain.html)*(\.io\/)*", "", link)
+            link = re.sub('\..*', '', link)
             if not link.startswith(("/", "twitter", "medium", "linkedin")):
                 finalHoldings.append(link.capitalize())
         except:
@@ -584,7 +587,7 @@ def svkCrypto(cryptoCounter):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
             
             if not link.startswith(("#", "svk", "docs", "twitter", "linkedin", "youtube", "audioboom", "t.me", "mailto", "uk.linkedin", "youtu.be", "block.one", "eos.io")):
-                link = re.sub("(\.com\/*)*(wp\.)*(\.io\/*)*(\.games\/*)*(\.gg\/*)*(app\.)*", "", link)
+                link = re.sub('\..*', '', link)
                 finalHoldings.append(link.capitalize())
         except:
             pass
@@ -604,7 +607,7 @@ def multiCoin(cryptoCounter):
             link = href.get("href")
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
             if not link.startswith(("/", "github", "jobs", "twitter", "multicoin", "mailto")):
-                link = re.sub("(\.com\/*)*(\.co\/*)*(\.org\/*e*n*-*u*s*\/*)*(\.io\/*)*(\.network\/*)*(\.fi\/*)*(\.us\/*)*", "", link)
+                link = re.sub('\..*', '', link)
                 finalHoldings.append(link.capitalize())
         except:
             pass
@@ -657,7 +660,7 @@ def bixin(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.com\/*)*(\.org\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -765,7 +768,7 @@ def versionOne(cryptoCounter):
         links.append(str(href.get("href")))
     for link in links:
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.com*\/*\#*\/*e*n*\/*)*(\.support\/*)*(\.io\/*)*(\.org\/*)*(\.dev\/*)*(network\.)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -783,7 +786,7 @@ def yeoman(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.org\/*)*(\.network\/*)*(\.com\/*e*n*\/*)*(\.mw\/*)*(\.one\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -831,7 +834,7 @@ def gumi(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.org\/*)*(\.com*\/*e*n*\/*h*o*m*e*)*(\.io\/*)*(\.jp\/*)*(\.xyz\/*)*(\.network\/*)*(\.finance\/*\#*\/*)*(\.exchange\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -849,8 +852,7 @@ def hardYaka(cryptoCounter):
     for href in hrefs:
         link = (href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.net\/*)*(\.com*\/*e*n*\/*w*e*l*c*o*m*e*a*b*o*u*t*\-*u*s*\.*h*t*m*l*\#*i*n*d*e*x*\/*)*(corporate\.)*(\.it\/*)*(\.app\/*)*(\.io\/*)*(\.org\/*)*(\.money\/*)*(\.is\/*)*(\.social\/*)*(\.engineering\/*)*(\.financial\/*)*(\.br\/*)*(\.tech\/*)*(\.us\/*)*(\.mx\/*)*", "", link)
-        link = re.sub("(\/)*(corp\.)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
         
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -919,7 +921,7 @@ def signalVC(cryptoCounter):
     for href in hrefs:
         link = str((href.get_attribute("href")))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.com\/*)*(\.network\/*)*(\.finance\/*)*(\.io\/*e*n*\/*)*(\.org\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         link = re.sub("\.", " ", link)
         link = link.replace("/", "")
         if link == "fetch ai":
@@ -1018,7 +1020,7 @@ def castleIsland(cryptoCounter):
         if not link.startswith(("index", "/", "mailto", "https://onthebrink")):
             
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com\/*)*(\.casa\/*)*(\.io\/*.*)*(\.id\/*)*", "", link)
+            link = re.sub('\..*', '', link)
             holding = link.strip().capitalize()
             finalHoldings.append(holding)
 
@@ -1069,7 +1071,7 @@ def a16z(cryptoCounter):
             link = str(href.get("href"))
             if not link.startswith(("https://a16z", "https://twitter", "https://info.a16z","https://https://portfoliojobs", "/", "#")):
                 link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-                link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*", "", link)
+                link = re.sub('\..*', '', link)
                 holding = link.capitalize().strip()
                 finalHoldings.append(holding)
         except:
@@ -1097,7 +1099,7 @@ def fabricVC(cryptoCounter):
                                 "https://blockchainventuresummit", "http://www.thimble", "https://devcon", "https://fabricvc", "http://eepurl")) and link != "None":
             
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
+            link = re.sub('\..*', '', link)
             holding = link.capitalize().strip()
             finalHoldings.append(holding)
 
@@ -1138,8 +1140,7 @@ def blockchainff(cryptoCounter):
             links.append(link)
     links = list(set(links))
     for link in links:
-        link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
-        link = re.sub("(\.vc)*(app)*(\.nyc)*(home)*(\.ie)*(\.wine)*(\.biz)*(\.in)*(\.my)*(\.cc)*(\.r\w)*(\.one)*(\.ca)*(sosvportfolio)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
         
 
@@ -1253,7 +1254,7 @@ def collaborativeFund(cryptoCounter):
         link = str(href.get("href"))
         if not link.startswith("/"):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*", "", link)
+            link = re.sub('\..*', '', link)
             if link not in banned and link != "None":
                 finalHoldings.append(link.capitalize())
 
@@ -1277,7 +1278,7 @@ def freesvc(cryptoCounter):
         link = str(href.get_attribute("href"))
         if not link.startswith(("mailto")):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.com*\/*)*(\.org\/*e*n*\-*U*S*\/*)*(\.finance\/*)*(\.net\/*)*(\.exchange\/*)*(\.ai\/*)*(\.network\/*)*(\.capital\/*)*(\.io\/*)*(\/)*(\.us\/*)*(\.casa\/*)*(\.xyz\/*)*(\.im)*(\/*\.*index\.html)*(\/*hshcweb\/beijing\.html)*(\/*Index.aspx)*(\/*download_app\/)*(\/*home/index)*(\.cn\/*)*(\.*zh\/*)*(\/zh-hans\/*)*(\/*shanghai)*(#)*", "", link)
+            link = re.sub('\..*', '', link)
             if link not in banned:
                 finalHoldings.append(link.capitalize())
     
@@ -1342,7 +1343,7 @@ def collider(cryptoCounter):
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
         if not link.startswith("collider"):
-            link = re.sub("(\.io\/*)*(\.mw\/*)*(\.com\/*)*(\.fi\/*)*", "", link)
+            link = re.sub('\..*', '', link)
             link = link.replace("-", " ")
             finalHoldings.append(link.capitalize())
 
@@ -1427,7 +1428,7 @@ def sparkdigital(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1445,7 +1446,7 @@ def rarestone(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1463,7 +1464,7 @@ def bitscale(cryptoCounter):
     for href in hrefs:
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     bitscaleHoldings['Bitscale'] = finalHoldings
@@ -1495,7 +1496,7 @@ def mondayCapital(cryptoCounter):
         link = str(href.get("href"))
         if not link.startswith(("/")):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*", "", link)
+            link = re.sub('\..*', '', link)
             finalHoldings.append(link.capitalize())
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     mondayCapitalHoldings['Monday Capital'] = finalHoldings
@@ -1512,7 +1513,7 @@ def ideocolab(cryptoCounter):
         link = str(href.get("href"))
         
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.us\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         link = re.sub("(medium@)*(PBC)*", "", link)
         finalHoldings.append(link.capitalize())
 
@@ -1570,7 +1571,7 @@ def coinfund(cryptoCounter):
         href = div.find("a")
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-        link = re.sub("(\.community\/*)*(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*", "", link)
+        link = re.sub('\..*', '', link)
         finalHoldings.append(link.capitalize())
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1588,7 +1589,7 @@ def unicorn(cryptoCounter):
         link = str(href.get('href'))
         if not link.startswith("/"):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*", "", link)
+            link = re.sub('\..*', '', link)
             link = re.sub("http;//", "", link)
             finalHoldings.append(link.capitalize())
 
@@ -1613,7 +1614,7 @@ def longhash(cryptoCounter):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
             
             if link not in banned:
-                link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+                link = re.sub('\..*', '', link)
                 finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1648,7 +1649,7 @@ def trgc(cryptoCounter):
         link = str(img.get("alt"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
         if link not in banned:
-            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+            link = re.sub('\..*', '', link)
             finalHoldings.append(link.capitalize())
     
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1684,7 +1685,7 @@ def blockGround(cryptoCounter):
         link = str(href.get('href'))
         if not link.startswith("https://blockgroundcapital.com/"):
             link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
-            link = re.sub("(\.bank/*)*(\.exchange\/*#*\/*)*(\.com*\/*.*)*(\.pro\/*)*(\.xyz\/*)*(\.org\/*.*)*(\.network\/*)*(\.io\/*)*(\.finance\/*)*(\.one\/*)*(\.trade\/*)*(\.dev\/*#*\/*)*(\.im\/*)*(\.fi\/*)*(\.games\/*)*(\.net\/*)*(\.app\/*)*(\.info\/*)*(\.ai\/*)*(\.chat\/*)*(\.gov.*)*(\.vc.*)*(\.nus.*)*", "", link)
+            link = re.sub('\..*', '', link)
             finalHoldings.append(link.capitalize())
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
@@ -1760,6 +1761,13 @@ def iconic(cryptoCounter):
 
     url = "https://www.iconic.io/"
     soup = getSoup(url)
+    div = soup.find("div", id="portfolio")
+    hrefs = div.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("\..*", "", link)
+        finalHoldings.append(link)
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     iconicHoldings['IconicHoldings'] = finalHoldings
@@ -1880,6 +1888,7 @@ def main():
 
     yeomanHoldings, cryptoCounter = yeoman(cryptoCounter)
     allHoldings.append(yeomanHoldings)
+    print(yeomanHoldings)
 
     lemniscapHoldings, cryptoCounter = lemniscap(cryptoCounter)
     allHoldings.append(lemniscapHoldings)
@@ -1936,9 +1945,6 @@ def main():
     blockchainffHoldings, cryptoCounter = blockchainff(cryptoCounter)
     allHoldings.append(blockchainffHoldings)
 
-    chainfundHoldings, cryptoCounter = chainfund(cryptoCounter)
-    allHoldings.append(chainfundHoldings)
-    
 
     fundamentalHoldings, cryptoCounter = fundamentalLabs(cryptoCounter)
     allHoldings.append(fundamentalHoldings)
@@ -2042,6 +2048,9 @@ def main():
     bitfuryHoldings, cryptoCounter = bitfury(cryptoCounter)
     allHoldings.append(bitfuryHoldings)
 
+    iconicHoldings, cryptoCounter = iconic(cryptoCounter)
+    allHoldings.append(iconicHoldings)
+
     os.chdir(r"C:\Users\Chip\Documents\upWorkProjects\justinScraping")
     with open ('dump.txt', 'w') as f:
         f.write(json.dumps(allHoldings))
@@ -2054,10 +2063,13 @@ def main():
 def convertToExcel(cryptoCounter, allHoldings, keys):
     print("Converting to excel!")
     wb = xlsxwriter.Workbook('cryptos.xlsx')
-    ws = wb.add_worksheet("Outlined Rows")
+    ws = wb.add_worksheet("Crypto and Investor")
     ws.set_column('A:A', 20)
     ws.write('A1', "Crypto")
     ws.write('B1', "Counter")
+    #ws2 = wb.add_worksheet("Cryptos")
+    #ws2.write('A1', "Crypto")
+    #ws2.write("B1", "Counter")
     cell_format = wb.add_format()
     cell_format.set_bold()
     aCount  = 2
@@ -2081,6 +2093,12 @@ def convertToExcel(cryptoCounter, allHoldings, keys):
                         pass
         aCount += 1
         bCount += 1
+    # for key, value in cryptoCounter.items():
+    #     cryptoCol = 'A' + str(aCount)
+    #     countCol = 'B' + str(bCount)
+    #     ws2.write(cryptoCol, key)
+    #     ws2.write(countCol, value)
+    #     aCount 
     wb.close()
     print("DONE!")
     
