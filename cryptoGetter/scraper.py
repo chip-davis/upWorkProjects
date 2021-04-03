@@ -24,7 +24,7 @@ def addToCryptoCounter(cryptoCounter, finalHoldings):
     for index, holding in enumerate(finalHoldings):
         for crypto in cryptoCounter:
             ratio = fuzz.ratio(holding.lower(), crypto.lower())
-            partialRatio = fuzz.ratio(holding.lower(), crypto.lower())
+            partialRatio = fuzz.partial_ratio(holding.lower(), crypto.lower())
             if ratio >= 90 or partialRatio >= 90:
                 finalHoldings[index] = crypto
 
@@ -1767,13 +1767,30 @@ def iconic(cryptoCounter):
         link = str(href.get("href"))
         link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
         link = re.sub("\..*", "", link)
-        finalHoldings.append(link)
+        finalHoldings.append(link.capitalize())
 
     cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
     iconicHoldings['IconicHoldings'] = finalHoldings
 
     return iconicHoldings, cryptoCounter
 
+def tldr(cryptoCounter):
+    finalHoldings = []
+    tldrHoldings = {}
+
+    url = "https://tldr.global/clients"
+    soup = getSoup(url)
+    hrefs = soup.find_all("a")
+    for href in hrefs:
+        link = str(href.get("href"))
+        link = re.sub('^(?:https?:\/\/)?(?:www\.)?', '', link)
+        link = re.sub("\..*", "", link)
+        if not link.startswith(("#", "/", "mailto")):
+            finalHoldings.append(link.capitalize())
+    cryptoCounter, finalHoldings = addToCryptoCounter(cryptoCounter, finalHoldings)
+    tldrHoldings['TLDR'] = finalHoldings
+
+    return tldrHoldings, cryptoCounter
 
 def main():
     allHoldings = []
@@ -2051,6 +2068,10 @@ def main():
     iconicHoldings, cryptoCounter = iconic(cryptoCounter)
     allHoldings.append(iconicHoldings)
 
+    tldrHoldings, cryptoCounter = tldr(cryptoCounter)
+    allHoldings.append(tldrHoldings)
+
+
     os.chdir(r"C:\Users\Chip\Documents\upWorkProjects\justinScraping")
     with open ('dump.txt', 'w') as f:
         f.write(json.dumps(allHoldings))
@@ -2063,17 +2084,22 @@ def main():
 def convertToExcel(cryptoCounter, allHoldings, keys):
     print("Converting to excel!")
     wb = xlsxwriter.Workbook('cryptos.xlsx')
+
     ws = wb.add_worksheet("Crypto and Investor")
     ws.set_column('A:A', 20)
     ws.write('A1', "Crypto")
     ws.write('B1', "Counter")
-    #ws2 = wb.add_worksheet("Cryptos")
-    #ws2.write('A1', "Crypto")
-    #ws2.write("B1", "Counter")
+    
+    ws2 = wb.add_worksheet("Cryptos")
+    ws2.set_column('A:A', 20)
+    ws2.write('A1', "Crypto")
+    ws2.write("B1", "Counter")
+    
     cell_format = wb.add_format()
     cell_format.set_bold()
     aCount  = 2
     bCount = 2 
+    
     for key, value in cryptoCounter.items():
         cryptoCol = 'A' + str(aCount)
         countCol = 'B' + str(bCount)
@@ -2093,12 +2119,15 @@ def convertToExcel(cryptoCounter, allHoldings, keys):
                         pass
         aCount += 1
         bCount += 1
-    # for key, value in cryptoCounter.items():
-    #     cryptoCol = 'A' + str(aCount)
-    #     countCol = 'B' + str(bCount)
-    #     ws2.write(cryptoCol, key)
-    #     ws2.write(countCol, value)
-    #     aCount 
+    aCount  = 2
+    bCount = 2 
+    for key, value in cryptoCounter.items():
+        cryptoCol = 'A' + str(aCount)
+        countCol = 'B' + str(bCount)
+        ws2.write(cryptoCol, key)
+        ws2.write(countCol, value)
+        aCount += 1
+        bCount += 1
     wb.close()
     print("DONE!")
     
