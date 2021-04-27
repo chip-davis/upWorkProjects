@@ -9,7 +9,8 @@ def parse(filepath, outdic = True):
 
     with pdfplumber.open(filepath) as pdf:
         pages = pdf.pages ## loads all of the pages of the PDF
-
+        wordNum = 1
+        
         try:
             with tqdm(total=len(pages)) as pbar: ## creates the progress bar 
                 for pageNum, page in enumerate(pages, start=1):
@@ -21,11 +22,11 @@ def parse(filepath, outdic = True):
 
                     page = [word.replace('"', '').replace('!', "").replace(',', '').replace("?", "").replace(":", "").replace("''", "") for word in page] ## extracts the text from the whole page then splits it into
                                                                                                                                         ## each line and removes some puncuation
-                    for lineNum, line in enumerate(page, start=1):
+                    for lineNum, line in enumerate(page, start = 1):
 
                         words = line.split() 
-
-                        for wordNum, word in enumerate(words, start=1): ## separates every individual word / line
+                        hyponatedWord = ''
+                        for word in  words: ## separates every individual word / line
                             if word.endswith("."): word = word.replace(".", "") ## gets rid of periods
                             if "-" in word:
                                 checkValue = checkHypon(word)
@@ -36,9 +37,13 @@ def parse(filepath, outdic = True):
                                     csv.append(f"{pageNum}, {lineNum}, {wordNum}, {word[0]}")
                                     wordNum = wordNum + 1
                                     csv.append(f"{pageNum}, {lineNum}, {wordNum}, {word[1]}")
+                                    wordNum += 1
+                                    continue
+
                             if word: csv.append(f"{pageNum}, {lineNum}, {wordNum}, {word}")
                             
-                            
+                            wordNum += 1
+                        wordNum = 1
                     pbar.update(1)
                         
         except Exception as ex:
