@@ -28,10 +28,14 @@ def parse(filepath, outdic = True):
                         hyponatedWord = ''
                         for word in  words: ## separates every individual word / line
                             if word.endswith("."): word = word.replace(".", "") ## gets rid of periods
+                            if hyponatedWord:
+                                word = hyponatedWord.replace("-", "") + wordNum
+                                hyponatedWord = ''
                             if "-" in word:
                                 checkValue = checkHypon(word)
                                 if checkValue == True:
-                                    pass
+                                    hyponatedWord = word
+                                    continue
                                 else:
                                     word = word.split("-")
                                     csv.append(f"{pageNum}, {lineNum}, {wordNum}, {word[0]}")
