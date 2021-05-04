@@ -1,147 +1,137 @@
-from tqdm import tqdm
-import pdfplumber
-import json
-import csv
+from PIL import Image
+import pytesseract
+import sys
+from pdf2image import convert_from_path
+import os
+import time
+import tempfile
+import re
+import glob
+import fnmatch
 import pandas as pd
 
-def byWord(filepath):
-    csv = []
+def createImages(pdfPath):
+    print("loading pages...")
+    # Store all the pages of the PDF in a variable
+    with tempfile.TemporaryDirectory() as path:
+        pages = convert_from_path(pdfPath, 350, output_folder=path, fmt="JPEG", thread_count=2, first_page=1, last_page=5)
+    
+    # Counter to store images of each page of PDF to image
+    image_counter = 1
+    
+    # Iterate through all the pages stored above
+    for page in pages:
+        
+        filename = f"page_{str(image_counter)}.jpg"
+        
+        # Save the image of the page in system
+        page.save(r'/home/chipdavis/Documents/personalProjects/PDFProj/pages/' + filename, 'JPEG')
+    
+        # Increment the counter to update filename
+        image_counter += 1
+        print(f"saving {image_counter}")
+    return image_counter
 
-    with pdfplumber.open(filepath) as pdf:
-        pages = pdf.pages ## loads all of the pages of the PDF
-        wordNum = 1
-        hyponatedWord = ''
-        try:
-            with tqdm(total=len(pages)) as pbar: ## creates the progress bar 
-                for pageNum, page in enumerate(pages):
-                    
-                    
-                    page = pages[pageNum]
-                    page = page.crop((0, 0.08 * float(page.height), page.width, page.height)).extract_text(x_tolerance=3, y_tolerance=3).split("\n") ## crops the page so that it gets rid of headers
+def ocrTextAdjustment(imagePath, image_counter):
+    # Variable to get count of total number of pages
+    filelimit = image_counter-1
+    
+    # Creating a text file to write the output
+    
+    outfile = f"out_text.txt"
+    
+    f = open(outfile, "a")
 
-                    page = [word.replace('"', '').replace('!', "").replace(',', '').replace("?", "").replace(":", "").replace("''", "").strip() for word in page] ## extracts the text from the whole page then splits it into
-                                                                                                                                        ## each line and removes some puncuation
-                    for lineNum, line in enumerate(page, start = 1):
+    # Iterate from 1 to total number of pages
+    for i in range(1, filelimit + 1):
+        
+        
+        filename = f"{imagePath}/page_{str(i)}.jpg"
 
-                        words = line.split() 
-                        
-                        for word in  words: ## separates every individual word / line
-                            if word.endswith("."): word = word.replace(".", "") ## gets rid of periods
+        print(f"doing {filename}")
 
-                            if hyponatedWord:
-                                word = hyponatedWord.replace("-", "") + word
-                                hyponatedWord = ''
+        # Recognize the text as string in image using pytesserct
+        text = str(((pytesseract.image_to_string(Image.open(filename)))))
+        
+        result = re.sub("(?i)([a-z]+)-\n([a-z]+)", r'\1\2\n', text)
+        result = re.sub("(\.*)", "", result)
+        result = result.replace("—", " ")
+        result = result.replace("-", " ")
+        result = re.sub(r'[^\w\s]', '', result)
+        # Finally, write the processed text to the file.
+        f.write(result)
+        f.write("\n=====================\n")
+    
+        # Close the file after writing all the text.
+    f.close()
 
-                            if "-" in word:
-                                checkValue = checkHypon(word)
-                                if checkValue == True:
-                                    hyponatedWord = word
-                                    continue
-                
-                                word = word.split("-")
-                                csv.append(f"{str(pageNum + 1)}, {lineNum}, {wordNum}, {word[0]}")
-                                wordNum = wordNum + 1
-                                csv.append(f"{str(pageNum + 1)}, {lineNum}, {wordNum}, {word[1]}")
-                                wordNum += 1
-                                continue
-                            if word: csv.append(f"{str(pageNum + 1)}, {lineNum}, {wordNum}, {word}")
-                            wordNum += 1
-                        wordNum = 1
-                    pbar.update(1)
-                        
-        except Exception as ex:
-            print(ex)
-        return csv
+def processOutText():
+    pages = {} # dictionary to store page number and a list containing the page contents
+    contents = [] # every line of the page that will get added to the dictionary
+    pageNum = 1 # start page off at 1
 
-def byLine(filepath):
-    csv = []
-    listOfWords = []
-    with pdfplumber.open(filepath) as pdf:
-        pages = pdf.pages ## loads all of the pages of the PDF
-        wordNum = 1
-        hyponatedWord = ''
-        try:
-            with tqdm(total=len(pages)) as pbar: ## creates the progress bar 
-                for pageNum, page in enumerate(pages):
-                    page = pages[pageNum]
-                    page = page.crop((0, 0.08 * float(page.height), page.width, page.height)).extract_text(x_tolerance=3, y_tolerance=3).split("\n") ## crops the page so that it gets rid of headers
 
-                    page = [word.replace('"', '').replace('!', "").replace(',', '').replace("?", "").replace(":", "").replace("''", "").strip() for word in page] ## extracts the text from the whole page then splits it into
-                                                                                                                                        ## each line and removes some puncuation
-                    for lineNum, line in enumerate(page, start = 1):
+    with open ('out_text.txt', 'r') as f:
+        for line in f:
+            if line == "\n": #ignore empty blank lines
+                continue
+            if "=====" in line: #how we know when a page stops
+                pages[pageNum] = contents # add to dictionary for saving
+                pageNum += 1
+                contents = [] # wipes for next page
+                continue            
+            contents.append(line) # addes line to list to get added to dictionary
+    return pages
 
-                        words = line.split() 
-                        
-                        for word in  words: ## separates every individual word / line
-                            if word.endswith("."): word = word.replace(".", "") ## gets rid of periods
+def byWord():
 
-                            if hyponatedWord:
-                                word = hyponatedWord.replace("-", "") + word
-                                hyponatedWord = ''
+    pages = processOutText() # addes line to list to get added to dictionary
+    CSV   = []
 
-                            if "-" in word:
-                                checkValue = checkHypon(word)
-                                if checkValue == True:
-                                    hyponatedWord = word
-                                    continue
-                
-                                word = word.split("-")
-                                listOfWords.append(word[0])
-                                listOfWords.append(word[1])
-                                continue
+    for key, value in pages.items():
+        lines = [content.strip() for content in value if content.strip() != ""]
+        lineNum = 1
+        for line in lines:
+            words = line.split()
+            for wordNum, word in enumerate(words):
+                CSV.append(f"{str(key)}, {lineNum}, {wordNum+1}, {word}")
+            lineNum+= 1
 
-                            if word: 
-                                listOfWords.append(word)
-                        # converts the list of individual words back into a single string seperated by commas
-                        stringOfWords = ", "
-                        stringOfWords = stringOfWords.join(listOfWords)
-                        listOfWords = []
+    return CSV
+    
+def byLine():
+    #returns a CSV with page number and line number and a string of words for every word
+    #in the line seperated by commas
 
-                        csv.append(f'{str(pageNum + 1)}, {lineNum}, "{stringOfWords}"')
-                    
-                    pbar.update(1)
-                        
-        except Exception as ex:
-            print(ex)
-        return csv
+    pages = processOutText() 
+    CSV   = []
 
-def byPage(filepath):
-    csv = []
+    for key, value in pages.items():
+        lines = [content.strip() for content in value if content.strip() != ""]
+        lineNum = 1
+        for line in lines:
+            line = line.split()
+            words = ', '
+            words = words.join(line) 
+            CSV.append(f'{str(key)}, {str(lineNum)}, "{words}"')
+            lineNum += 1
+    return CSV
+
+def byPage():
+    pages, CSV = processOutText()
     allWordsOnPage = ', '
-    with pdfplumber.open(filepath) as pdf:
-        pages = pdf.pages ## loads all of the pages of the PDF
-        wordNum = 1
-        try:
-            with tqdm(total=len(pages)) as pbar: ## creates the progress bar 
-                for pageNum, page in enumerate(pages):
-                    page = pages[pageNum]
-                    page = page.crop((0, 0.08 * float(page.height), page.width, page.height)).extract_text(x_tolerance=3, y_tolerance=3).split("\n") ## crops the page so that it gets rid of headers
+    for key, value in pages.items():
+        lines = [content.strip() for content in value if content.strip() != ""]
+        allWordsOnPage = allWordsOnPage.join(lines)
+        CSV.append(f'{str(key)}, "{allWordsOnPage}"')
+    return CSV
 
-                    page = [word.replace('"', '').replace('!', "").replace(',', '').replace("?", "").replace(":", "").replace("''", "").strip() for word in page] ## extracts the text from the whole page then splits it into
-                                                                                                                                        ## each line and removes some puncuation
-                    allWordsOnPage = allWordsOnPage.join(page)
+def saveCSV(CSV):
+    with open("csv.txt", 'w') as f:
+        for line in CSV:
+            f.write(line + "\n")
 
-                    csv.append(f'{str(pageNum + 1)}, "{allWordsOnPage}"')
-                    
-                    allWordsOnPage = ', '
-
-                    pbar.update(1)
-                        
-        except Exception as ex:
-            print(ex)
-        return csv
-
-def checkHypon(word):
-    #returns false if its just an instance like "and then--there were none"
-    #returns true  if its a hypen connecting a word to the next line
-    try:
-        check = word[word.find("-") + 1]
-        return False
-    except IndexError:
-        return True
-    
 def saveDicByWord():
-    
     csv_file = pd.DataFrame(pd.read_csv("csv.txt", sep = ",", names=["page", "line", "wordnum", "word"], index_col = False, skipinitialspace=True))
     csv_file.to_json("dataByWord.json", orient = "records", date_format = "epoch", double_precision = 10, force_ascii = True, date_unit = "ms", default_handler = None, indent=4)
 
@@ -153,33 +143,22 @@ def saveDicByPage():
     csv_file = pd.DataFrame(pd.read_csv("csv.txt", sep = ",", names=["page", "words"], index_col = False, skipinitialspace=True))
     csv_file.to_json("dataByPage.json", orient = "records", date_format = "epoch", double_precision = 10, force_ascii = True, date_unit = "ms", default_handler = None, indent=4)
 
-def saveCSV(data):
-    with open("csv.txt", 'w') as f:
-        for line in data:
-            f.write(line + "\n")
-            
-
 def main():
-    filepath = str(input("Please enter the filepath of the pdf: "))
-    option   = int(input("Please enter a '1' for byWord, a '2' for byLine, or a '3' for byPage: "))
+    PDF_file = r"/home/chipdavis/Documents/personalProjects/PDFProj/PDFS/andThenThereWereNoneFROCR.pdf"
+    imagesPath = r"/home/chipdavis/Documents/personalProjects/PDFProj/pages"
     
-    if option == 1:
-        CSV = byWord(filepath)
-        saveCSV(CSV)
-        saveDicByWord()
-        return
-    if option == 2:
-        CSV = byLine(filepath)
-        saveCSV(CSV)
-        saveDicByLine()
-        return
-    if option == 3:
-        CSV = byPage(filepath)
-        saveCSV(CSV)
-        saveDicByPage()
-        return
-    else:
-        print("You inputted an incorect option. Exiting")
-        return
+    # image_counter = createImages(PDF_file)
+    # ocrTextAdjustment(imagesPath, image_counter)
     
+    CSV = byWord()
+    saveCSV(CSV)
+    saveDicByWord()
+
+    # CSV = byPage()
+    # saveCSV(CSV)
+    # saveDicByPage()
+    
+    
+
+
 main()
